@@ -1,51 +1,71 @@
 <!-- src/lib/components/MainGamePage.svelte (oder wie du es nennen möchtest) -->
 <script lang="ts">
+  import FlipBoard from '$lib/components/FlipBoard.svelte';
   import { onMount } from 'svelte';
 
-  // Beispiel-Daten, diese würden von außen kommen oder hier verwaltet
+  // Typdefinition für ein Spiel
+  type Game = {
+    name: string;
+    rules: string;
+    frontLogo: string;
+    id: number;
+    points: number;
+  };
+
   let player1Name = "Flo";
   let player2Name = "Gegner";
   let player1Score = 0;
   let player2Score = 0;
   let currentRound = 1;
-  let totalRounds = 18; // Oder basierend auf der Anzahl der Spiele
 
-  const games = [
-    { id: 1, name: "Blamieren oder Kassieren", rules: "Quizfragen beantworten.", points: 1 },
-    { id: 2, name: "Auswendig lernen", rules: "Dinge merken.", points: 2 },
+  // Ursprüngliche Spieleliste ohne Punkte
+  let games: Omit<Game, 'id' | 'points'>[] = [
+    { name: "Blamieren oder Kassieren", rules: "Quizfragen beantworten.", frontLogo: "/BoK.png" },
+    { name: "Jenga", rules: "Turm bauen und abwechselnd Steine ziehen.", frontLogo: "/Jenga.png" },
     // ... mehr Spiele
   ];
 
-  let currentGameIndex = 0;
-  let currentSelectedGame = games[currentGameIndex];
-  let isCardFlipped = false;
-
-  function revealGame() {
-    if (!isCardFlipped) {
-      isCardFlipped = true;
-      // Logik, um Spiel-Infos zu aktualisieren, falls nicht schon geschehen
+  function shuffle<T>(array: T[]): T[] {
+    let m = array.length, t, i;
+    while (m) {
+      i = Math.floor(Math.random() * m--);
+      t = array[m];
+      array[m] = array[i];
+      array[i] = t;
     }
+    return array;
   }
+
+  // Beim Start mischen und Punkte zuweisen
+  let randomizedGames: Game[] = shuffle(games).map((game, idx) => ({
+    ...game,
+    id: idx + 1,
+    points: idx + 1
+  }));
+
+  let totalRounds = randomizedGames.length;
+  let currentGameIndex = 0;
+  let currentSelectedGame: Game = randomizedGames[currentGameIndex];
+  let isCardFlipped = false;
+  let showFlipBoard = false;
 
   function awardPoints(winner: 'player1' | 'player2' | 'draw') {
     if (!currentSelectedGame || !isCardFlipped) return;
-
     const points = currentSelectedGame.points;
     if (winner === 'player1') {
       player1Score += points;
     } else if (winner === 'player2') {
       player2Score += points;
     }
-    // Nächstes Spiel vorbereiten
     prepareNextGame();
   }
 
   function prepareNextGame() {
     isCardFlipped = false;
     currentGameIndex++;
-    if (currentGameIndex < games.length) {
-      currentSelectedGame = games[currentGameIndex];
-      currentRound = currentSelectedGame.id; // Wenn Spiel-ID = Runde
+    if (currentGameIndex < randomizedGames.length) {
+      currentSelectedGame = randomizedGames[currentGameIndex];
+      currentRound = currentSelectedGame.id;
     } else {
       // Spiel vorbei Logik
       console.log("Spiel vorbei!");
@@ -53,14 +73,21 @@
     }
   }
 
-  // Für eine kleine Intro-Animation der Elemente
+  function handleRevealBtn() {
+    showFlipBoard = true;
+  }
+
+  function handleFlipEnd() {
+    showFlipBoard = false;
+    isCardFlipped = true;
+  }
+
   let pageLoaded = false;
   onMount(() => {
     setTimeout(() => {
       pageLoaded = true;
-    }, 100); // Kurzer Delay für den Effekt
+    }, 100);
   });
-
 </script>
 
 <div class="main-game-bg" class:loaded={pageLoaded}>
@@ -85,22 +112,21 @@
       </div>
     </section>
 
-    <section class="game-announcement-section panel">
-      <h2>Nächstes Spiel</h2>
-      <div class="game-card-container" on:click={revealGame}>
-        <div class="game-card" class:flipped={isCardFlipped}>
-          <div class="card-face card-front">
-            <span>Spiel {currentSelectedGame?.id || '?'}</span>
-          </div>
-          <div class="card-face card-back">
-            <span>{currentSelectedGame?.name || 'Spielname'}</span>
-          </div>
-        </div>
-      </div>
-      {#if !isCardFlipped}
-        <button class="action-btn reveal-btn" on:click|stopPropagation={revealGame}>Spiel aufdecken!</button>
-      {/if}
-    </section>
+{#if showFlipBoard}
+  <FlipBoard
+    frontImg={currentSelectedGame.frontLogo}
+    backImg="/logo_intro_back.png"
+    sound="/GameSound.mp3"
+    on:flipEnd={handleFlipEnd}
+  />
+{:else}
+  <section class="game-announcement-section panel">
+    <h2>Nächstes Spiel</h2>
+    {#if !isCardFlipped}
+      <button class="action-btn reveal-btn" on:click|stopPropagation={handleRevealBtn}>Spiel aufdecken!</button>
+    {/if}
+  </section>
+{/if}
 
     {#if isCardFlipped && currentSelectedGame}
       <section class="current-game-details-section panel">
