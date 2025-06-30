@@ -1,6 +1,8 @@
 <!-- src/lib/components/MainGamePage.svelte (oder wie du es nennen möchtest) -->
 <script lang="ts">
   import FlipBoard from '$lib/components/FlipBoard.svelte';
+  import Sortieren from '$lib/games/Sortieren.svelte';
+  import SortierenSession from './SortierenSession.svelte';
   import { onMount } from 'svelte';
 
   // Typdefinition für ein Spiel
@@ -10,10 +12,11 @@
     frontLogo: string;
     id: number;
     points: number;
+    component?: string; 
   };
 
   let player1Name = "Flo";
-  let player2Name = "Gegner";
+  let player2Name = "Kandidat";
   let player1Score = 0;
   let player2Score = 0;
   let currentRound = 1;
@@ -22,6 +25,11 @@
   let games: Omit<Game, 'id' | 'points'>[] = [
     { name: "Blamieren oder Kassieren", rules: "Quizfragen beantworten.", frontLogo: "/BoK.png" },
     { name: "Jenga", rules: "Turm bauen und abwechselnd Steine ziehen.", frontLogo: "/Jenga.png" },
+    { name: "Klackern", rules: "Abwechselndes Klackern: Der Ball darf weder den Boden noch den Körper berühren. Wer den Ball zuerst nicht fängt, verliert.", frontLogo: "/Klackern.png" },
+    { name: "Luft anhalten", rules: "Beide Teilnehmer müssen ihren Kopf unter Wasser halten. Wer zuerst auftaucht, verliert.", frontLogo: "/Luftanhalten.png" },
+    { name: "Sortieren", rules: "Die Teilnehmer müssen Antworten in eine Liste richtig einsortieren.", frontLogo: "/Sortieren.png", component: 'Sortieren' },
+
+
     // ... mehr Spiele
   ];
 
@@ -45,7 +53,22 @@
 
   let totalRounds = randomizedGames.length;
   let currentGameIndex = 0;
-  let currentSelectedGame: Game = randomizedGames[currentGameIndex];
+  //let currentSelectedGame: Game =  games[4];
+    // "Sortieren" immer als erstes Spiel für Debug
+  let currentSelectedGame: Game = {
+    ...games.find(g => g.name === "Sortieren"),
+    id: 1,
+    points: 1
+  } as Game;
+  // Restliche Spiele mischen, aber "Sortieren" bleibt vorn
+  randomizedGames = [
+    currentSelectedGame,
+    ...shuffle(games.filter(g => g.name !== "Sortieren")).map((game, idx) => ({
+      ...game,
+      id: idx + 2,
+      points: idx + 2
+    }))
+  ];
   let isCardFlipped = false;
   let showFlipBoard = false;
 
@@ -91,68 +114,162 @@
 </script>
 
 <div class="main-game-bg" class:loaded={pageLoaded}>
-  <header class="game-header">
-    <img src="/logo_intro_front.png" alt="Schlag den Flo Logo" class="header-logo" draggable="false"/>
-    <div class="header-title-container">
-      <h1 class="main-title">SCHLAG DEN FLO</h1>
-      <div class="round-info">Spiel {currentRound} / {totalRounds}</div>
-    </div>
-  </header>
-
-  <main class="game-content">
-    <section class="scoreboard-section panel">
-      <div class="player-score">
-        <span class="player-name">{player1Name}</span>
-        <span class="score">{player1Score}</span>
-      </div>
-      <div class="vs">VS</div>
-      <div class="player-score">
-        <span class="player-name">{player2Name}</span>
-        <span class="score">{player2Score}</span>
-      </div>
-    </section>
-
-{#if showFlipBoard}
-  <FlipBoard
-    frontImg={currentSelectedGame.frontLogo}
-    backImg="/logo_intro_back.png"
-    sound="/GameSound.mp3"
-    on:flipEnd={handleFlipEnd}
-  />
-{:else}
-  <section class="game-announcement-section panel">
-    <h2>Nächstes Spiel</h2>
-    {#if !isCardFlipped}
-      <button class="action-btn reveal-btn" on:click|stopPropagation={handleRevealBtn}>Spiel aufdecken!</button>
+  {#if isCardFlipped && currentSelectedGame && currentSelectedGame.component}
+    <!-- Nur das Spiel anzeigen, kein Header und kein Scoreboard -->
+    {#if currentSelectedGame.component === 'Sortieren'}
+      <SortierenSession
+        listen={[
+          // Hauptlisten (werden angezeigt)
+          {
+            label: "Deutsche Bundekanzler von 1960 bis heute",
+            items: [
+              { name: "Konrad Adenauer", year: 1963 },
+              { name: "Ludwig Erhard", year: 1966 },
+              { name: "Kurt Georg Kiesinger", year: 1969 },
+              { name: "Willy Brandt", year: 1974 },
+              { name: "Helmut Schmidt", year: 1982 },
+              { name: "Helmut Kohl", year: 1998 },
+              { name: "Gerhard Schröder", year: 2005 },
+              { name: "Angela Merkel", year: 2021 },
+              { name: "Olaf Scholz", year: 2025 },
+              { name: "Friedrich Merz", year: 2029 }
+            ]
+          },
+          {
+            label: "Filme nach deutschem Kinostart",
+            items: [
+              { name: "Top Gun: Maverick", year: 2022 },
+              { name: "Parasite", year: 2019 },
+              { name: "Ziemlich beste Freunde", year: 2012 },
+              { name: "Avatar – Aufbruch nach Pandora", year: 2009 },
+              { name: "The Dark Knight", year: 2008 },
+              { name: "Herr der Ringe: Die Gefährten", year: 2001 },
+              { name: "Forrest Gump", year: 1994 },
+              { name: "Jurassic Park", year: 1993 },
+              { name: "Zurück in die Zukunft", year: 1985 },
+              { name: "Der Pate", year: 1972 }
+            ]
+          },
+          {
+            label: "Berge nach Höhe",
+            items: [
+              { name: "Mount Everest", year: 8848 },
+              { name: "K2", year: 8611 },
+              { name: "Aconcagua", year: 6961 },
+              { name: "Kilimandscharo", year: 5895 },
+              { name: "Mont Blanc", year: 4807 },
+              { name: "Mount Fuji", year: 3776 },
+              { name: "Zugspitze", year: 2962 },
+              { name: "Brocken", year: 1141 },
+              { name: "Feldberg", year: 1493 },
+              { name: "Ben Nevis", year: 1345 }
+            ]
+          },
+          // Zusätzliche Listen für Unentschieden (werden nicht angezeigt, nur intern genutzt)
+          {
+            label: "(Reserve) Nobelpreisträger für Physik",
+            items: [
+              { name: "Albert Einstein", year: 1921 },
+              { name: "Marie Curie", year: 1903 },
+              { name: "Wilhelm Conrad Röntgen", year: 1901 },
+              { name: "Max Planck", year: 1918 },
+              { name: "Niels Bohr", year: 1922 },
+              { name: "Enrico Fermi", year: 1938 },
+              { name: "Werner Heisenberg", year: 1932 },
+              { name: "Wolfgang Pauli", year: 1945 },
+              { name: "Richard Feynman", year: 1965 },
+              { name: "Peter Higgs", year: 2013 }
+            ]
+          },
+          {
+            label: "(Reserve) Deutsche Städte nach Einwohnerzahl",
+            items: [
+              { name: "Berlin", year: 3769000 },
+              { name: "Hamburg", year: 1841000 },
+              { name: "München", year: 1472000 },
+              { name: "Köln", year: 1086000 },
+              { name: "Frankfurt am Main", year: 763000 },
+              { name: "Stuttgart", year: 635000 },
+              { name: "Düsseldorf", year: 620000 },
+              { name: "Leipzig", year: 617000 },
+              { name: "Dortmund", year: 587000 },
+              { name: "Essen", year: 583000 }
+            ]
+          }
+        ]}
+        points={currentSelectedGame.points}
+        playerNames={[player1Name, player2Name]}
+        onSessionEnd={(winner) => {
+          if (winner === 0) {
+            awardPoints('player1');
+          } else if (winner === 1) {
+            awardPoints('player2');
+          } // Bei -1 (Unentschieden) wirklich nichts tun!
+        }}
+      />
     {/if}
-  </section>
-{/if}
+  {:else}
+    <header class="game-header">
+      <img src="/logo_intro_front.png" alt="Schlag den Flo Logo" class="header-logo" draggable="false"/>
+      <div class="header-title-container">
+        <h1 class="main-title">SCHLAG DEN FLO</h1>
+        <div class="round-info">Spiel {currentRound} / {totalRounds}</div>
+      </div>
+    </header>
 
-    {#if isCardFlipped && currentSelectedGame}
-      <section class="current-game-details-section panel">
-        <h3>{currentSelectedGame.name}</h3>
-        <p class="rules">{currentSelectedGame.rules}</p>
-        <p class="points"><strong>Punkte für dieses Spiel: {currentSelectedGame.points}</strong></p>
-        <div class="winner-controls">
-          <button class="action-btn" on:click={() => awardPoints('player1')}>{player1Name} gewinnt</button>
-          <button class="action-btn" on:click={() => awardPoints('player2')}>{player2Name} gewinnt</button>
-          {#if currentSelectedGame.points > 1} <!-- Unentschieden nur sinnvoll, wenn Punkte nicht zwingend vergeben werden -->
-            <button class="action-btn draw-btn" on:click={() => awardPoints('draw')}>Unentschieden</button>
-          {/if}
+    <main class="game-content">
+      <section class="scoreboard-section panel">
+        <div class="player-score">
+          <span class="player-name">{player1Name}</span>
+          <span class="score">{player1Score}</span>
+        </div>
+        <div class="vs">VS</div>
+        <div class="player-score">
+          <span class="player-name">{player2Name}</span>
+          <span class="score">{player2Score}</span>
         </div>
       </section>
-    {/if}
-  </main>
+
+      {#if showFlipBoard}
+        <FlipBoard
+          frontImg={currentSelectedGame.frontLogo}
+          backImg="/logo_intro_back.png"
+          sound="/GameSound.mp3"
+          on:flipEnd={handleFlipEnd}
+        />
+      {:else}
+        <section class="game-announcement-section panel">
+          <h2>Nächstes Spiel</h2>
+          {#if !isCardFlipped}
+            <button class="action-btn reveal-btn" on:click|stopPropagation={handleRevealBtn}>Spiel aufdecken!</button>
+          {/if}
+        </section>
+      {/if}
+
+      {#if isCardFlipped && currentSelectedGame && !currentSelectedGame.component}
+        <!-- Standardanzeige für andere Spiele -->
+        <section class="current-game-details-section panel">
+          <h3>{currentSelectedGame.name}</h3>
+          <p class="rules">{currentSelectedGame.rules}</p>
+          <p class="points"><strong>Punkte für dieses Spiel: {currentSelectedGame.points}</strong></p>
+          <div class="winner-controls">
+            <button class="action-btn" on:click={() => awardPoints('player1')}>{player1Name} gewinnt</button>
+            <button class="action-btn" on:click={() => awardPoints('player2')}>{player2Name} gewinnt</button>
+          </div>
+        </section>
+      {/if}
+    </main>
+  {/if}
 </div>
 
 <style>
+  /* Import einer coolen Schriftart, z.B. Bebas Neue oder Anton für Überschriften */
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Open+Sans:wght@400;700&display=swap');
+
   :global(body) { /* Stellt sicher, dass der Body keinen unerwünschten Margin hat */
     margin: 0;
     font-family: 'Arial', sans-serif; /* Fallback Schriftart */
   }
-
-  /* Import einer coolen Schriftart, z.B. Bebas Neue oder Anton für Überschriften */
-  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Open+Sans:wght@400;700&display=swap');
 
   .main-game-bg {
     min-height: 100vh;
@@ -305,54 +422,7 @@
     gap: 1rem;
   }
   
-  /* Styling für die Flip-Karte (aus deinem vorherigen Beispiel angepasst) */
-  .game-card-container {
-    width: 220px;
-    height: 140px;
-    perspective: 1000px;
-    cursor: pointer;
-    margin-bottom: 1rem; /* Platz zum Button darunter */
-  }
 
-  .game-card {
-    width: 100%;
-    height: 100%;
-    position: relative;
-    transform-style: preserve-3d;
-    transition: transform 0.8s cubic-bezier(.68,-0.55,.27,1.55);
-    border-radius: 10px; /* Abrundung für die Karte selbst */
-    box-shadow: 0 5px 20px rgba(0,0,0,0.4);
-  }
-
-  .game-card.flipped {
-    transform: rotateY(180deg);
-  }
-
-  .card-face {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    backface-visibility: hidden;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 10px; /* Abrundung für die Flächen */
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.8em;
-    color: #1a1a1d; /* Dunkler Text für Kontrast */
-    padding: 0.5em;
-    text-align: center;
-    line-height: 1.2;
-  }
-
-  .card-front {
-    background: linear-gradient(135deg, #ffe066, #f7c948); /* Goldener Verlauf */
-  }
-
-  .card-back {
-    background: linear-gradient(135deg, #f0f0f0, #e0e0e0); /* Helle Rückseite */
-    transform: rotateY(180deg);
-  }
 
 
   .action-btn {
