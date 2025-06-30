@@ -4,6 +4,9 @@
 
     export let items: { name: string; year: number }[];
     export let label: string;
+    export let labelOben: string;
+    export let labelUnten: string;
+
     export let playerNames: string[];
 
 
@@ -183,8 +186,8 @@ function handleDrop(idx: number) {
       on:dragleave={handleDragLeave}
       on:drop={() => handleDrop(sortedList.length)}
     ></div>
-    <div class="alt-label alt-label-top">Alt</div>
-    <div class="neu-label">Neu</div>
+    <div class="alt-label alt-label-top">{labelOben}</div>
+    <div class="neu-label">{labelUnten}</div>
   </div>
   <div class="to-place-list-vertical responsive-box">
     <div class="to-place-label to-place-label-top">Noch zu sortieren:</div>
@@ -485,11 +488,5 @@ function handleDrop(idx: number) {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-.sortieren-label-side span, .sortieren-label-side p, .sortieren-label-side div, .sortieren-label-side {
-  text-align: justify;
-}
-.sortieren-label-side span:last-child, .sortieren-label-side p:last-child, .sortieren-label-side div:last-child {
-  text-align: center;
 }
 </style>

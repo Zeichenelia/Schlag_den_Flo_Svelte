@@ -1,6 +1,12 @@
 <script lang="ts">
   import Sortieren from '$lib/games/Sortieren.svelte';
-  export let listen: {label: string, items: {name: string, year: number}[]}[];
+  type SortierListe = {
+    label: string;
+    items: { name: string; year: number }[];
+    labelOben: string;
+    labelUnten: string;
+  };
+  export let listen: SortierListe[];
   export let playerNames: string[] = ["Flo", "Kandidat"];
   export let points: number;
   export let onSessionEnd: (winner: 0 | 1) => void;
@@ -8,12 +14,15 @@
 let round = 0;
 let wins = [0, 0]; // [player1, player2]
 let showSortieren = true;
+let roundNumber = 0; // Aktuelle Runde, wird für UI verwendet
 
 function handleGameEnd(event: CustomEvent<{ winner: 0 | 1 | -1 }>) {
   if (event.detail.winner === 0) {
     wins[0]++;
+    roundNumber++;
   } else if (event.detail.winner === 1) {
     wins[1]++;
+    roundNumber++;
   } else if (event.detail.winner === -1) {
     // Unentschieden: keine Punkte vergeben
   }
@@ -32,11 +41,13 @@ function handleGameEnd(event: CustomEvent<{ winner: 0 | 1 | -1 }>) {
   <Sortieren
     items={listen[round].items}
     label={listen[round].label}
+    labelOben={listen[round].labelOben}
+    labelUnten={listen[round].labelUnten}
     playerNames={playerNames}
     on:gameEnd={handleGameEnd}
   />
   <div class="sortieren-session-info-bottom">
-    <div>Runde {round + 1} von 3 &ndash; Best of 3</div>
+    <div>Runde {roundNumber + 1} von 3 &ndash; Best of 3</div>
     <div>{playerNames[0]}: {wins[0]} &nbsp;|&nbsp; {playerNames[1]}: {wins[1]}</div>
   </div>
 {/if}

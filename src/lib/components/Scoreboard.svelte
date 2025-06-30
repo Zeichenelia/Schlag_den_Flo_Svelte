@@ -53,22 +53,22 @@
 
   let totalRounds = randomizedGames.length;
   let currentGameIndex = 0;
-  //let currentSelectedGame: Game =  games[4];
-    // "Sortieren" immer als erstes Spiel für Debug
-  let currentSelectedGame: Game = {
-    ...games.find(g => g.name === "Sortieren"),
-    id: 1,
-    points: 1
-  } as Game;
-  // Restliche Spiele mischen, aber "Sortieren" bleibt vorn
-  randomizedGames = [
-    currentSelectedGame,
-    ...shuffle(games.filter(g => g.name !== "Sortieren")).map((game, idx) => ({
-      ...game,
-      id: idx + 2,
-      points: idx + 2
-    }))
-  ];
+  let currentSelectedGame: Game =  randomizedGames[currentGameIndex];
+  //   // "Sortieren" immer als erstes Spiel für Debug
+  // let currentSelectedGame: Game = {
+  //   ...games.find(g => g.name === "Sortieren"),
+  //   id: 1,
+  //   points: 1
+  // } as Game;
+  // // Restliche Spiele mischen, aber "Sortieren" bleibt vorn
+  // randomizedGames = [
+  //   currentSelectedGame,
+  //   ...shuffle(games.filter(g => g.name !== "Sortieren")).map((game, idx) => ({
+  //     ...game,
+  //     id: idx + 2,
+  //     points: idx + 2
+  //   }))
+  // ];
   let isCardFlipped = false;
   let showFlipBoard = false;
 
@@ -133,7 +133,9 @@
               { name: "Angela Merkel", year: 2021 },
               { name: "Olaf Scholz", year: 2025 },
               { name: "Friedrich Merz", year: 2029 }
-            ]
+            ],
+            labelOben:"Alt",
+            labelUnten:"Neu"
           },
           {
             label: "Filme nach deutschem Kinostart",
@@ -148,7 +150,9 @@
               { name: "Jurassic Park", year: 1993 },
               { name: "Zurück in die Zukunft", year: 1985 },
               { name: "Der Pate", year: 1972 }
-            ]
+            ],
+            labelOben:"Alt",
+            labelUnten:"Neu"
           },
           {
             label: "Berge nach Höhe",
@@ -163,11 +167,13 @@
               { name: "Brocken", year: 1141 },
               { name: "Feldberg", year: 1493 },
               { name: "Ben Nevis", year: 1345 }
-            ]
+            ],
+            labelOben:"Tief",
+            labelUnten:"Hoch"
           },
           // Zusätzliche Listen für Unentschieden (werden nicht angezeigt, nur intern genutzt)
           {
-            label: "(Reserve) Nobelpreisträger für Physik",
+            label: "Nobelpreisträger für Physik",
             items: [
               { name: "Albert Einstein", year: 1921 },
               { name: "Marie Curie", year: 1903 },
@@ -179,10 +185,12 @@
               { name: "Wolfgang Pauli", year: 1945 },
               { name: "Richard Feynman", year: 1965 },
               { name: "Peter Higgs", year: 2013 }
-            ]
+            ],
+            labelOben:"Alt",
+            labelUnten:"Neu"
           },
           {
-            label: "(Reserve) Deutsche Städte nach Einwohnerzahl",
+            label: "Deutsche Städte nach Einwohnerzahl",
             items: [
               { name: "Berlin", year: 3769000 },
               { name: "Hamburg", year: 1841000 },
@@ -194,7 +202,9 @@
               { name: "Leipzig", year: 617000 },
               { name: "Dortmund", year: 587000 },
               { name: "Essen", year: 583000 }
-            ]
+            ],
+            labelOben:"Weniger",
+            labelUnten:"Mehr"
           }
         ]}
         points={currentSelectedGame.points}
