@@ -3,6 +3,7 @@
   import FlipBoard from '$lib/components/FlipBoard.svelte';
   import Sortieren from '$lib/games/Sortieren.svelte';
   import SortierenSession from './SortierenSession.svelte';
+  import MapGame from '$lib/games/MapGame.svelte';
   import { onMount } from 'svelte';
 
   // Typdefinition für ein Spiel
@@ -28,6 +29,7 @@
     { name: "Klackern", rules: "Abwechselndes Klackern: Der Ball darf weder den Boden noch den Körper berühren. Wer den Ball zuerst nicht fängt, verliert.", frontLogo: "/Klackern.png" },
     { name: "Luft anhalten", rules: "Beide Teilnehmer müssen ihren Kopf unter Wasser halten. Wer zuerst auftaucht, verliert.", frontLogo: "/Luftanhalten.png" },
     { name: "Sortieren", rules: "Die Teilnehmer müssen Antworten in eine Liste richtig einsortieren.", frontLogo: "/Sortieren.png", component: 'Sortieren' },
+    { name: "Wo ist das?",  rules: "Die Teilnehmer müssen auf einer Weltkarte den richtigen Ort markieren.", frontLogo: "/WoIstDas.png", component: 'MapGame' }
 
 
     // ... mehr Spiele
@@ -54,16 +56,16 @@
   let totalRounds = randomizedGames.length;
   let currentGameIndex = 0;
   let currentSelectedGame: Game =  randomizedGames[currentGameIndex];
-  //   // "Sortieren" immer als erstes Spiel für Debug
+    // "Sortieren" immer als erstes Spiel für Debug
   // let currentSelectedGame: Game = {
-  //   ...games.find(g => g.name === "Sortieren"),
+  //   ...games.find(g => g.name === "Wo ist das?")!,
   //   id: 1,
   //   points: 1
   // } as Game;
   // // Restliche Spiele mischen, aber "Sortieren" bleibt vorn
   // randomizedGames = [
   //   currentSelectedGame,
-  //   ...shuffle(games.filter(g => g.name !== "Sortieren")).map((game, idx) => ({
+  //   ...shuffle(games.filter(g => g.name !== "Wo ist das?")).map((game, idx) => ({
   //     ...game,
   //     id: idx + 2,
   //     points: idx + 2
@@ -111,11 +113,32 @@
       pageLoaded = true;
     }, 100);
   });
+
+  function handleMapGameEnd(event: CustomEvent<{ winner: 0 | 1 | -1, wins: number[] }>) {
+  const { winner, wins } = event.detail;
+  if (winner === 0) {
+    awardPoints('player1');
+  } else if (winner === 1) {
+    awardPoints('player2');
+  }
+  // Unentschieden: keine Punkte
+  // Weiter zum Scoreboard (nächste Runde)
+  currentGameIndex++;
+  if (currentGameIndex < randomizedGames.length) {
+    currentSelectedGame = randomizedGames[currentGameIndex];
+    currentRound = currentSelectedGame.id;
+    isCardFlipped = false;
+    showFlipBoard = false;
+  } else {
+    // Spiel vorbei Logik
+    console.log("Spiel vorbei!");
+    // Hier könnte man z.B. einen Gewinner-Screen anzeigen
+  }
+}
 </script>
 
 <div class="main-game-bg" class:loaded={pageLoaded}>
   {#if isCardFlipped && currentSelectedGame && currentSelectedGame.component}
-    <!-- Nur das Spiel anzeigen, kein Header und kein Scoreboard -->
     {#if currentSelectedGame.component === 'Sortieren'}
       <SortierenSession
         listen={[
@@ -217,6 +240,8 @@
           } // Bei -1 (Unentschieden) wirklich nichts tun!
         }}
       />
+    {:else if currentSelectedGame.component === 'MapGame'}
+      <MapGame on:sessionEnd={handleMapGameEnd} />
     {/if}
   {:else}
     <header class="game-header">
