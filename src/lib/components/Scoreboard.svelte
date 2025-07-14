@@ -29,9 +29,8 @@
     { name: "Klackern", rules: "Abwechselndes Klackern: Der Ball darf weder den Boden noch den Körper berühren. Wer den Ball zuerst nicht fängt, verliert.", frontLogo: "/Klackern.png" },
     { name: "Luft anhalten", rules: "Beide Teilnehmer müssen ihren Kopf unter Wasser halten. Wer zuerst auftaucht, verliert.", frontLogo: "/Luftanhalten.png" },
     { name: "Sortieren", rules: "Die Teilnehmer müssen Antworten in eine Liste richtig einsortieren.", frontLogo: "/Sortieren.png", component: 'Sortieren' },
-    { name: "Wo ist das?",  rules: "Die Teilnehmer müssen auf einer Weltkarte den richtigen Ort markieren.", frontLogo: "/WoIstDas.png", component: 'MapGame' }
-
-
+    { name: "Wo ist das?",  rules: "Die Teilnehmer müssen auf einer Weltkarte den richtigen Ort markieren.", frontLogo: "/WoIstDas.png", component: 'MapGame' },
+    { name: "Die Flasche", rules: "Die Teilnehmer müssen abwechselnd mit einem Flaschendeckel eine auf dem Kopf stehende Flasche umschnipsen. Der erste, dem dies gelingt, ohne dass der andere es ebenfalls schafft, gewinnt das Spiel.", frontLogo: "/DieFlasche.png" }
     // ... mehr Spiele
   ];
 
@@ -120,19 +119,6 @@
     awardPoints('player1');
   } else if (winner === 1) {
     awardPoints('player2');
-  }
-  // Unentschieden: keine Punkte
-  // Weiter zum Scoreboard (nächste Runde)
-  currentGameIndex++;
-  if (currentGameIndex < randomizedGames.length) {
-    currentSelectedGame = randomizedGames[currentGameIndex];
-    currentRound = currentSelectedGame.id;
-    isCardFlipped = false;
-    showFlipBoard = false;
-  } else {
-    // Spiel vorbei Logik
-    console.log("Spiel vorbei!");
-    // Hier könnte man z.B. einen Gewinner-Screen anzeigen
   }
 }
 </script>
@@ -237,7 +223,7 @@
             awardPoints('player1');
           } else if (winner === 1) {
             awardPoints('player2');
-          } // Bei -1 (Unentschieden) wirklich nichts tun!
+          }
         }}
       />
     {:else if currentSelectedGame.component === 'MapGame'}
@@ -493,13 +479,6 @@
     flex-wrap: wrap; /* Falls Buttons untereinander rutschen sollen */
     justify-content: center;
     margin-top: 1rem;
-  }
-  .draw-btn {
-    background-color: #aaa;
-    color: #333;
-  }
-  .draw-btn:hover {
-    background-color: #bbb;
   }
 
   .rules {
