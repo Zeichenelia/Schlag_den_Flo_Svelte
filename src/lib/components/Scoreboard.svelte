@@ -5,6 +5,7 @@
   import SortierenSession from './SortierenSession.svelte';
   import MapGame from '$lib/games/MapGame.svelte';
   import MerkenGame from '$lib/games/MerkenGame.svelte';
+  import KofferPackenGame from '$lib/games/KofferPackenGame.svelte';
   import { onMount } from 'svelte';
 
   // Typdefinition für ein Spiel
@@ -32,7 +33,9 @@
     { name: "Sortieren", rules: "Die Teilnehmer müssen Antworten in eine Liste richtig einsortieren.", frontLogo: "/Sortieren.png", component: 'Sortieren' },
     { name: "Wo ist das?",  rules: "Die Teilnehmer müssen auf einer Weltkarte den richtigen Ort markieren.", frontLogo: "/WoIstDas.png", component: 'MapGame' },
     { name: "Die Flasche", rules: "Die Teilnehmer müssen abwechselnd mit einem Flaschendeckel eine auf dem Kopf stehende Flasche umschnipsen. Der erste, dem dies gelingt, ohne dass der andere es ebenfalls schafft, gewinnt das Spiel.", frontLogo: "/DieFlasche.png" },
-    { name: "Merken", rules: "Die Teilnehmer müssen sich die Positionen von Karten merken und diese dann richtig zuordnen.", frontLogo: "/Merken.png", component: 'MerkenGame' }
+    { name: "Merken", rules: "Die Teilnehmer müssen sich die Positionen von Karten merken und diese dann richtig zuordnen.", frontLogo: "/Merken.png", component: 'MerkenGame' },
+    { name: "Erbsen",  rules: "Die Teilnehmer lassen abwechselnd eine Erbse vom Tischrand in eine Flasche fallen. Wer von zehn Würfen die meisten trifft, gewinnt das Spiel.", frontLogo: "/Erbsen.png" },
+    { name: "Koffer packen", rules: "Die Teilnehmer müssen abwechselnd einen Koffer mit vorgegebenen Gegenständen packen. Wer die meisten Gegenstände richtig einpackt, gewinnt das Spiel.", frontLogo: "/KofferPacken.png", component: 'KofferPackenGame' },
     // ... mehr Spiele
   ];
 
@@ -57,16 +60,16 @@
   let totalRounds = randomizedGames.length;
   let currentGameIndex = 0;
   // let currentSelectedGame: Game =  randomizedGames[currentGameIndex];
-  // "Sortieren" immer als erstes Spiel für Debug
+  // "Wo ist das?" immer als erstes Spiel für Debug
   let currentSelectedGame: Game = {
-    ...games.find(g => g.name === "Merken")!,
+    ...games.find(g => g.name === "Wo ist das?")!,
     id: 1,
     points: 1
   } as Game;
-  // Restliche Spiele mischen, aber "Sortieren" bleibt vorn
+  // Restliche Spiele mischen, aber "Wo ist das?" bleibt vorn
   randomizedGames = [
     currentSelectedGame,
-    ...shuffle(games.filter(g => g.name !== "Merken")).map((game, idx) => ({
+    ...shuffle(games.filter(g => g.name !== "Wo ist das?")).map((game, idx) => ({
       ...game,
       id: idx + 2,
       points: idx + 2
@@ -249,6 +252,14 @@
       <MapGame on:sessionEnd={handleMapGameEnd} />
     {:else if currentSelectedGame.component === 'MerkenGame'}
       <MerkenGame on:sessionEnd={(e) => {
+        if (e.detail.winner === 0) {
+          awardPoints('player1');
+        } else if (e.detail.winner === 1) {
+          awardPoints('player2');
+        }
+      }} />
+    {:else if currentSelectedGame.component === 'KofferPackenGame'}
+      <KofferPackenGame on:sessionEnd={(e) => {
         if (e.detail.winner === 0) {
           awardPoints('player1');
         } else if (e.detail.winner === 1) {
