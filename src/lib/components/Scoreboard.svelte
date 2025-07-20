@@ -101,10 +101,27 @@
     showFlipBoard = true;
   }
 
+
   function handleFlipEnd() {
     showFlipBoard = false;
     isCardFlipped = true;
   }
+
+  // FlipBoard mit Leertaste skippen
+  function handleKeydown(event: KeyboardEvent) {
+    if (showFlipBoard && event.code === 'Space') {
+      event.preventDefault();
+      handleFlipEnd();
+    }
+  }
+
+  // Event Listener für Keydown
+  onMount(() => {
+    window.addEventListener('keydown', handleKeydown);
+    return () => {
+      window.removeEventListener('keydown', handleKeydown);
+    };
+  });
 
   let pageLoaded = false;
   onMount(() => {
