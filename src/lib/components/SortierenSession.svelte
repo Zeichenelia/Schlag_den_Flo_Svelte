@@ -8,7 +8,7 @@
   };
   export let listen: SortierListe[];
   export let playerNames: string[] = ["Flo", "Kandidat"];
-  export let points: number;
+export const points: number = 0;
   export let onSessionEnd: (winner: 0 | 1) => void;
 
 

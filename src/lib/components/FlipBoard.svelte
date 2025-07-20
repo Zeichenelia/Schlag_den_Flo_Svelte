@@ -113,22 +113,6 @@
   transform: rotateY(900deg) scale(1.08);
 }
 
-.flip-btn {
-  margin-top: 2rem;
-  padding: 1rem 2.5rem;
-  font-size: 1.3rem;
-  font-weight: bold;
-  background: linear-gradient(90deg, #ffe066 60%, #fffbe0 100%);
-  border: none;
-  border-radius: 2rem;
-  box-shadow: 0 2px 12px #0003;
-  color: #222;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.flip-btn:hover {
-  background: linear-gradient(90deg, #fffbe0 0%, #ffe066 100%);
-}
 img {
   width: 100%;
   height: 100%;

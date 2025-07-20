@@ -4,6 +4,7 @@
   import Sortieren from '$lib/games/Sortieren.svelte';
   import SortierenSession from './SortierenSession.svelte';
   import MapGame from '$lib/games/MapGame.svelte';
+  import MerkenGame from '$lib/games/MerkenGame.svelte';
   import { onMount } from 'svelte';
 
   // Typdefinition für ein Spiel
@@ -30,7 +31,8 @@
     { name: "Luft anhalten", rules: "Beide Teilnehmer müssen ihren Kopf unter Wasser halten. Wer zuerst auftaucht, verliert.", frontLogo: "/Luftanhalten.png" },
     { name: "Sortieren", rules: "Die Teilnehmer müssen Antworten in eine Liste richtig einsortieren.", frontLogo: "/Sortieren.png", component: 'Sortieren' },
     { name: "Wo ist das?",  rules: "Die Teilnehmer müssen auf einer Weltkarte den richtigen Ort markieren.", frontLogo: "/WoIstDas.png", component: 'MapGame' },
-    { name: "Die Flasche", rules: "Die Teilnehmer müssen abwechselnd mit einem Flaschendeckel eine auf dem Kopf stehende Flasche umschnipsen. Der erste, dem dies gelingt, ohne dass der andere es ebenfalls schafft, gewinnt das Spiel.", frontLogo: "/DieFlasche.png" }
+    { name: "Die Flasche", rules: "Die Teilnehmer müssen abwechselnd mit einem Flaschendeckel eine auf dem Kopf stehende Flasche umschnipsen. Der erste, dem dies gelingt, ohne dass der andere es ebenfalls schafft, gewinnt das Spiel.", frontLogo: "/DieFlasche.png" },
+    { name: "Merken", rules: "Die Teilnehmer müssen sich die Positionen von Karten merken und diese dann richtig zuordnen.", frontLogo: "/Merken.png", component: 'MerkenGame' }
     // ... mehr Spiele
   ];
 
@@ -54,22 +56,22 @@
 
   let totalRounds = randomizedGames.length;
   let currentGameIndex = 0;
-  let currentSelectedGame: Game =  randomizedGames[currentGameIndex];
-    // "Sortieren" immer als erstes Spiel für Debug
-  // let currentSelectedGame: Game = {
-  //   ...games.find(g => g.name === "Wo ist das?")!,
-  //   id: 1,
-  //   points: 1
-  // } as Game;
-  // // Restliche Spiele mischen, aber "Sortieren" bleibt vorn
-  // randomizedGames = [
-  //   currentSelectedGame,
-  //   ...shuffle(games.filter(g => g.name !== "Wo ist das?")).map((game, idx) => ({
-  //     ...game,
-  //     id: idx + 2,
-  //     points: idx + 2
-  //   }))
-  // ];
+  // let currentSelectedGame: Game =  randomizedGames[currentGameIndex];
+  // "Sortieren" immer als erstes Spiel für Debug
+  let currentSelectedGame: Game = {
+    ...games.find(g => g.name === "Merken")!,
+    id: 1,
+    points: 1
+  } as Game;
+  // Restliche Spiele mischen, aber "Sortieren" bleibt vorn
+  randomizedGames = [
+    currentSelectedGame,
+    ...shuffle(games.filter(g => g.name !== "Merken")).map((game, idx) => ({
+      ...game,
+      id: idx + 2,
+      points: idx + 2
+    }))
+  ];
   let isCardFlipped = false;
   let showFlipBoard = false;
 
@@ -245,6 +247,14 @@
       />
     {:else if currentSelectedGame.component === 'MapGame'}
       <MapGame on:sessionEnd={handleMapGameEnd} />
+    {:else if currentSelectedGame.component === 'MerkenGame'}
+      <MerkenGame on:sessionEnd={(e) => {
+        if (e.detail.winner === 0) {
+          awardPoints('player1');
+        } else if (e.detail.winner === 1) {
+          awardPoints('player2');
+        }
+      }} />
     {/if}
   {:else}
     <header class="game-header">
