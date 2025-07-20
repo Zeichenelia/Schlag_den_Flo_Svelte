@@ -1,5 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
+  import { onMount } from 'svelte';
   const dispatch = createEventDispatcher();
 
   let showIntro = true;
@@ -176,20 +177,19 @@ let roundStarter = 0; // 0 = Flo, 1 = Kandidat
 
   function confirmPin() {
     if (tempPin) {
-      pins.push(tempPin);
+      // Bestimme, welcher Spieler gerade am Zug ist: roundStarter beginnt, dann der andere
+      pins[activePlayer] = tempPin;
       tempPin = null;
-      // Nach jedem Pin: Map auf Ursprungsform zurücksetzen
       zoom = 1;
       zoomX = 2000 / 2;
       zoomY = 857 / 2;
       updateViewBox();
-      if (pins.length === 2) {
+      if (pins.filter(Boolean).length === 2) {
         showSolution = true;
-        // Nach beiden Pins: automatisch auf alles zoomen und Interaktion sperren
-        setTimeout(() => zoomToPinsAndSolution(), 100); // Kurze Verzögerung für Rendering
+        setTimeout(() => zoomToPinsAndSolution(), 100);
       } else {
-        // Spielerwechsel: 0 -> 1, 1 -> 0
-        activePlayer = (activePlayer + 1) % 2;
+        // Spielerwechsel: Der andere Spieler ist dran
+        activePlayer = activePlayer === 0 ? 1 : 0;
       }
     }
   }
@@ -263,26 +263,23 @@ let roundStarter = 0; // 0 = Flo, 1 = Kandidat
   }
 
   function nextRound() {
-    // Nur weitermachen, wenn das Spiel noch nicht vorbei ist
     if (bo5Winner !== null) return;
     pins = [];
     showSolution = false;
     currentRound++;
-    // Nach Reset: wieder auf Gesamtkarte zoomen
     zoom = 1;
     zoomX = 2000 / 2;
     zoomY = 857 / 2;
-    // Abwechselnd Starter: 0,1,0,1...
+    // Starter für die Runde wechseln
     roundStarter = (roundStarter + 1) % 2;
     activePlayer = roundStarter;
     updateViewBox();
   }
 
-  import { onMount } from 'svelte';
 onMount(() => {
     updateViewBox();
     // Setze roundStarter und activePlayer für die erste Runde
-    roundStarter = 0;
+    roundStarter = Math.random() < 0.5 ? 0 : 1;
     activePlayer = roundStarter;
 });
 </script>
@@ -337,19 +334,8 @@ onMount(() => {
           aria-label="Karte auswählen"
           style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:all;z-index:2;"
         >
-          {#each pins as pin, i}
-            <!-- Pinnadel: kleiner Kopf, dünner Schaft, Spitze trifft genau den Punkt -->
-            <g>
-              <!-- Schaft -->
-              <rect x={pin.x - 0.7} y={pin.y - 10} width="1.4" height="10" fill="#888" stroke="#444" stroke-width="0.3" rx="0.7" />
-              <!-- Kopf -->
-              <circle cx={pin.x} cy={pin.y - 10} r="3.2" fill={i === 0 ? '#4be07b' : '#e74c3c'} stroke="#222" stroke-width="1" />
-              <!-- Spitze -->
-              <circle cx={pin.x} cy={pin.y} r="1.1" fill="#fff" stroke="#222" stroke-width="0.5" />
-            </g>
-          {/each}
           {#if showSolution}
-            <!-- Beide Pins nochmal hervorheben, wenn Lösung gezeigt wird -->
+            <!-- Beide Pins anzeigen, wenn Lösung gezeigt wird -->
             {#each pins as pin, i}
               <g>
                 <rect x={pin.x - 0.7} y={pin.y - 10} width="1.4" height="10" fill={i === 0 ? '#4be07b' : '#e74c3c'} stroke="#222" stroke-width="0.3" rx="0.7" opacity="0.7" />
@@ -357,13 +343,15 @@ onMount(() => {
                 <circle cx={pin.x} cy={pin.y} r="1.1" fill="#fff" stroke="#222" stroke-width="0.5" opacity="0.7" />
               </g>
             {/each}
-          {/if}
-          {#if tempPin}
-            <g opacity="0.7">
-              <rect x={tempPin.x - 0.7} y={tempPin.y - 10} width="1.4" height="10" fill="#888" stroke="#444" stroke-width="0.3" rx="0.7" />
-              <circle cx={tempPin.x} cy={tempPin.y - 10} r="3.2" fill={pins.length === 0 ? '#4be07b' : '#e74c3c'} stroke="#222" stroke-width="1" />
-              <circle cx={tempPin.x} cy={tempPin.y} r="1.1" fill="#fff" stroke="#222" stroke-width="0.5" />
-            </g>
+          {:else}
+            <!-- Nur den eigenen Pin anzeigen, solange nicht beide gesetzt -->
+            {#if tempPin}
+              <g>
+                <rect x={tempPin.x - 0.7} y={tempPin.y - 10} width="1.4" height="10" fill="#888" stroke="#444" stroke-width="0.3" rx="0.7" />
+                <circle cx={tempPin.x} cy={tempPin.y - 10} r="3.2" fill={activePlayer === 0 ? '#4be07b' : '#e74c3c'} stroke="#222" stroke-width="1" />
+                <circle cx={tempPin.x} cy={tempPin.y} r="1.1" fill="#fff" stroke="#222" stroke-width="0.5" />
+              </g>
+            {/if}
           {/if}
           {#if showSolution && solutionCircle}
             <!-- Blauer Kreis für den näheren Pin -->
@@ -392,7 +380,7 @@ onMount(() => {
         {/if}
         <button class="map-confirm-btn map-next-btn" on:click={() => { checkWinner(); nextRound(); }}>Weiter</button>
       {:else}
-        {#if pins.length < 2}
+        {#if pins.filter(Boolean).length < 2}
           {#if activePlayer === 0}
             Flo ist am Zug
           {:else}
