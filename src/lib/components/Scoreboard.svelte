@@ -6,6 +6,7 @@
   import MapGame from '$lib/games/MapGame.svelte';
   import MerkenGame from '$lib/games/MerkenGame.svelte';
   import KofferPackenGame from '$lib/games/KofferPackenGame.svelte';
+  import Gesichter from '$lib/games/Gesichter.svelte';
   import { onMount } from 'svelte';
 
   // Typdefinition für ein Spiel
@@ -36,6 +37,11 @@
     { name: "Merken", rules: "Die Teilnehmer müssen sich die Positionen von Karten merken und diese dann richtig zuordnen.", frontLogo: "/Merken.png", component: 'MerkenGame' },
     { name: "Erbsen",  rules: "Die Teilnehmer lassen abwechselnd eine Erbse vom Tischrand in eine Flasche fallen. Wer von zehn Würfen die meisten trifft, gewinnt das Spiel.", frontLogo: "/Erbsen.png" },
     { name: "Koffer packen", rules: "Die Teilnehmer müssen abwechselnd einen Koffer mit vorgegebenen Gegenständen packen. Wer die meisten Gegenstände richtig einpackt, gewinnt das Spiel.", frontLogo: "/KofferPacken.png", component: 'KofferPackenGame' },
+    { name: "Dosenschießen", rules: "Die Teilnehmer müssen abwechselnd Dosen mit einem Fußball umschießen. Wer zuerst alle Dosen abgeräumt hat, gewinnt das Spiel.", frontLogo: "/Dosenschiessen.png" },
+    { name: "Mäxle", rules: "Die Teilnehmer würfeln abwechselnd mit zwei Würfeln und nennen eine Kombination, wobei sie auch lügen dürfen; der nächste Spieler kann die Ansage glauben und weiterwürfeln oder bezweifeln und aufdecken – wer beim Aufdecken lügt oder eine niedrigere Kombination würfelt, verliert. Wer zuerst  7 Punkte hat gewinnt das Spiel.", frontLogo: "/Maexle.png" },
+    { name: "Pusteball", rules: "Die Teilnehmer müssen über einen Tisch hinweg den Ball über die jeweils andere Tischkante pusten, fällt der Ball auf einer Seite runter erhält der andere Spieler einen Punkt.  Wer zuerst 7 Punkte hat gewinnt das Spiel.", frontLogo: "/Pusteball.png" },
+    { name: "Gesichter", rules: "Es werden langsam Bilder von Gesichtern bekannter Persönlichkeiten aufgedeckt. Wer zuerst das Gesicht erkennt, erhält einen Punkt bei falscher Antwort erhält der Gegner einen Punkt. Wer zuerst 7 Punkte hat gewinnt das Spiel.", frontLogo: "/Gesichter.png", component: 'Gesichter' },
+
     // ... mehr Spiele
   ];
 
@@ -59,17 +65,17 @@
 
   let totalRounds = randomizedGames.length;
   let currentGameIndex = 0;
-  // let currentSelectedGame: Game =  randomizedGames[currentGameIndex];
-  // "Wo ist das?" immer als erstes Spiel für Debug
-  let currentSelectedGame: Game = {
-    ...games.find(g => g.name === "Wo ist das?")!,
-    id: 1,
-    points: 1
-  } as Game;
-  // Restliche Spiele mischen, aber "Wo ist das?" bleibt vorn
+  let currentSelectedGame: Game =  randomizedGames[currentGameIndex];
+  //"Gesichter" immer als erstes Spiel für Debug
+  // let currentSelectedGame: Game = {
+  //   ...games.find(g => g.name === "Gesichter")!,
+  //   id: 1,
+  //   points: 1
+  // } as Game;
+  //Restliche Spiele mischen, aber "Gesichter" bleibt vorn
   randomizedGames = [
     currentSelectedGame,
-    ...shuffle(games.filter(g => g.name !== "Wo ist das?")).map((game, idx) => ({
+    ...shuffle(games.filter(g => g.name)).map((game, idx) => ({
       ...game,
       id: idx + 2,
       points: idx + 2
@@ -77,16 +83,30 @@
   ];
   let isCardFlipped = false;
   let showFlipBoard = false;
+  let isRevealPaused = false;
+  let showGesichterGame = false;
+
+  // Liste der Bilder für Gesichter
+  const gesichterImages = [
+    '/gesichter/merkel.png',
+    '/gesichter/schumacher.png',
+    '/gesichter/klitschko.png',
+    '/gesichter/mercury.png',
+
+    // ... weitere Bilder
+  ];
 
   function awardPoints(winner: 'player1' | 'player2' | 'draw') {
     if (!currentSelectedGame || !isCardFlipped) return;
     const points = currentSelectedGame.points;
     if (winner === 'player1') {
       player1Score += points;
+      prepareNextGame();
     } else if (winner === 'player2') {
       player2Score += points;
+      prepareNextGame();
     }
-    prepareNextGame();
+    // Bei Unentschieden (draw) keine Punkte und kein prepareNextGame hier
   }
 
   function prepareNextGame() {
@@ -104,19 +124,32 @@
 
   function handleRevealBtn() {
     showFlipBoard = true;
+    isRevealPaused = false;
   }
 
 
   function handleFlipEnd() {
     showFlipBoard = false;
     isCardFlipped = true;
+    isRevealPaused = false;
   }
 
   // FlipBoard mit Leertaste skippen
+  function handlePauseReveal() {
+    isRevealPaused = !isRevealPaused;
+  }
+
   function handleKeydown(event: KeyboardEvent) {
+    // FlipBoard mit Leertaste skippen nur, wenn showFlipBoard aktiv ist
     if (showFlipBoard && event.code === 'Space') {
       event.preventDefault();
-      handleFlipEnd();
+      isRevealPaused = !isRevealPaused;
+      // Flip sofort beenden, falls Reveal pausiert wird
+      if (isRevealPaused) {
+        showFlipBoard = false;
+        isCardFlipped = true;
+        isRevealPaused = false;
+      }
     }
   }
 
@@ -266,6 +299,32 @@
           awardPoints('player2');
         }
       }} />
+    {:else if currentSelectedGame.component === 'Gesichter'}
+      <Gesichter
+        image={gesichterImages[currentGameIndex % gesichterImages.length]}
+        revealSpeed={200}
+        tileSpeed={500}
+        points={currentSelectedGame.points}
+        playerNames={[player1Name, player2Name]}
+        on:buzz={(e) => {
+          const idx = e.detail.player;
+          if (idx === 0) {
+            awardPoints('player1');
+          } else if (idx === 1) {
+            awardPoints('player2');
+          }
+        }}
+        on:sessionEnd={(e) => {
+          if (e.detail.winner === 0) {
+            awardPoints('player1');
+          } else if (e.detail.winner === 1) {
+            awardPoints('player2');
+          } else if (e.detail.winner === 'draw' || e.detail.winner === -1) {
+            // Unentschieden: keine Punkte, aber weiter
+            prepareNextGame();
+          }
+        }}
+      />
     {/if}
   {:else}
     <header class="game-header">
@@ -290,12 +349,14 @@
       </section>
 
       {#if showFlipBoard}
-        <FlipBoard
-          frontImg={currentSelectedGame.frontLogo}
-          backImg="/logo_intro_back.png"
-          sound="/GameSound.mp3"
-          on:flipEnd={handleFlipEnd}
-        />
+        <div style="position: relative;">
+          <FlipBoard
+            frontImg={currentSelectedGame.frontLogo}
+            backImg="/logo_intro_back.png"
+            sound="/GameSound.mp3"
+            on:flipEnd={handleFlipEnd}
+          />
+        </div>
       {:else}
         <section class="game-announcement-section panel">
           <h2>Nächstes Spiel</h2>

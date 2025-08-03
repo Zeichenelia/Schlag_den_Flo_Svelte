@@ -40,8 +40,8 @@
       solution: { x: 421, y: 223 } // Mount Rushmore, USA
     },
     {
-      text: 'Wo wurden vier Präsidentenköpfe in einen Berg gemeißelt?',
-      solution: { x: 421, y: 223 } // Mount Rushmore, USA
+      text: 'Wo wurde der Komponist der Zauberflöte geboren?',
+      solution: { x: 1053, y: 195 } // Salzburg, Österreich (Hagenauerhaus)
     },
 
 
