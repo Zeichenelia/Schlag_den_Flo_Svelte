@@ -1,5 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher, onMount } from 'svelte';
+  // import time functions if needed, e.g.:
+  // import { sleep, wait } from './time'; // <-- adjust path and functions as needed
 
   export let image = '';
   export let revealSpeed = 50; // ms pro Schritt (für Blur/Klassisch)
@@ -55,6 +57,8 @@
     0,    // Selenskyj
     -0.075, // Greta
     0,    // Otto
+    0,    // Kennedy
+    0,    // Wiedersich
   ];
 
   // Hilfsfunktion: Hole Index des aktuellen Bildes aus images
@@ -191,7 +195,9 @@ onMount(() => {
         }
         if (tileIdx >= tileOrder.length) {
           clearInterval(interval);
-          revealFinished = true;
+          setTimeout(() => {
+            revealFinished = true;
+          }, 3000);
         }
       }, tileSpeed);
     } else {
@@ -209,7 +215,9 @@ onMount(() => {
         }
         if (revealProgress >= 100) {
           clearInterval(interval);
-          revealFinished = true;
+          setTimeout(() => {
+            revealFinished = true;
+          }, 3000);
         }
       }, revealSpeed);
     }
@@ -257,7 +265,7 @@ function nextRound() {
     setTimeout(() => startReveal(), 0);
   }
 
-  // Liste der Bilder (hier als Beispiel, kann per Prop übergeben werden)
+  // Liste der Bilder
   const images = [
     '/gesichter/merkel.png',
     '/gesichter/schumacher.png',
@@ -274,6 +282,8 @@ function nextRound() {
     '/gesichter/zelensky.png',
     '/gesichter/greta.png',
     '/gesichter/Otto.png',
+    '/gesichter/kennedy.png', 
+    '/gesichter/Wiedersich.png',
   ];
 
   // Namen passend zu den Bildern (gleiche Reihenfolge wie images)
@@ -293,6 +303,8 @@ function nextRound() {
     'Wolodymyr Selenskyj',
     'Greta Thunberg',
     'Otto Waalkes',
+    'John F. Kennedy',
+    'Florian Wiederlich', 
   ];
 
   // Handler für das Spielende

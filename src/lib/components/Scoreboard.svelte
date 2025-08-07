@@ -41,7 +41,10 @@
     { name: "Mäxle", rules: "Die Teilnehmer würfeln abwechselnd mit zwei Würfeln und nennen eine Kombination, wobei sie auch lügen dürfen; der nächste Spieler kann die Ansage glauben und weiterwürfeln oder bezweifeln und aufdecken – wer beim Aufdecken lügt oder eine niedrigere Kombination würfelt, verliert. Wer zuerst  7 Punkte hat gewinnt das Spiel.", frontLogo: "/Maexle.png" },
     { name: "Pusteball", rules: "Die Teilnehmer müssen über einen Tisch hinweg den Ball über die jeweils andere Tischkante pusten, fällt der Ball auf einer Seite runter erhält der andere Spieler einen Punkt.  Wer zuerst 7 Punkte hat gewinnt das Spiel.", frontLogo: "/Pusteball.png" },
     { name: "Gesichter", rules: "Es werden langsam Bilder von Gesichtern bekannter Persönlichkeiten aufgedeckt. Wer zuerst das Gesicht erkennt, erhält einen Punkt bei falscher Antwort erhält der Gegner einen Punkt. Wer zuerst 7 Punkte hat gewinnt das Spiel.", frontLogo: "/Gesichter.png", component: 'Gesichter' },
-
+    { name: "Lattenschießen", rules: "Die Teilnehmer müssen abwechselnd versuchen, mit einem Ball die Latte eines Tors zu treffen. Wer die Latte trifft, erhält einen Punkt. Wer von 10 Schüssen die meisten trifft, gewinnt das Spiel.", frontLogo: "/Lattenschiessen.png"},
+    { name: "Flaschen schieben", rules: "Die Teilnehmer müssen eine Flasche, welche auf dem Kopf steht mit dem Fuß eine bestimmte Strecke schieben. Fällt die Flasche um muss von der Startlinie neu begonnen werden. Wer zuerst die Strecke bewältigt gewinnt das Spiel.", frontLogo: "/FlascheSchieben.png" },
+    { name: "Würfel rechnen", rules: "Es werden fünf Würfel geworfen, die Teilnehmer müssen das Produkt der Würfel berechnen. Wer zuerst die richtige Summe nennt, gewinnt die Runde. Wer zuerst 7 Punkte hat, gewinnt das Spiel.", frontLogo: "/WuerfelRechnen.png" },
+    { name: "Buchstaben", rules: "Den Teilnehmern wird ein Wort vorgelesen und sie müssen die Anzahl der Buchstaben im Wort nennen. Wer die richtige Anzahl zuerst nennt, erhält einen Punkt, wird die Falsche Anzahl genannt, erhält der Gegner einen Punkt. Der erste mit 5 Punkten gewinnt das Spiel.", frontLogo: "/Buchstaben.png" },
     // ... mehr Spiele
   ];
 
@@ -65,14 +68,14 @@
 
   let totalRounds = randomizedGames.length;
   let currentGameIndex = 0;
-  let currentSelectedGame: Game =  randomizedGames[currentGameIndex];
-  //"Gesichter" immer als erstes Spiel für Debug
-  // let currentSelectedGame: Game = {
-  //   ...games.find(g => g.name === "Gesichter")!,
-  //   id: 1,
-  //   points: 1
-  // } as Game;
-  //Restliche Spiele mischen, aber "Gesichter" bleibt vorn
+  // let currentSelectedGame: Game =  randomizedGames[currentGameIndex];
+  // "Gesichter" immer als erstes Spiel für Debug
+  let currentSelectedGame: Game = {
+    ...games.find(g => g.name === "Gesichter")!,
+    id: 1,
+    points: 1
+  } as Game;
+  // Restliche Spiele mischen, aber "Gesichter" bleibt vorn
   randomizedGames = [
     currentSelectedGame,
     ...shuffle(games.filter(g => g.name)).map((game, idx) => ({
@@ -302,7 +305,7 @@
     {:else if currentSelectedGame.component === 'Gesichter'}
       <Gesichter
         image={gesichterImages[currentGameIndex % gesichterImages.length]}
-        revealSpeed={200}
+        revealSpeed={200} 
         tileSpeed={500}
         points={currentSelectedGame.points}
         playerNames={[player1Name, player2Name]}
