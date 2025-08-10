@@ -59,45 +59,29 @@
     return array;
   }
 
-  // Beim Start mischen und Punkte zuweisen
-  let randomizedGames: Game[] = shuffle(games).map((game, idx) => ({
-    ...game,
-    id: idx + 1,
-    points: idx + 1
-  }));
+  // Persistenz-Konfiguration
+  const STORAGE_KEY = 'schlag-den-flo-state-v1';
+  interface PersistedState {
+    player1Score: number;
+    player2Score: number;
+    currentGameIndex: number;
+    randomizedGames: Game[];
+    isCardFlipped: boolean;
+  }
 
+  function buildInitialGames(): Game[] {
+    // Alle Spiele zufällig mischen
+    return shuffle([...games]).map((g, idx) => ({ ...g, id: idx + 1, points: idx + 1 }));
+  }
+
+  let randomizedGames: Game[] = buildInitialGames();
   let totalRounds = randomizedGames.length;
   let currentGameIndex = 0;
-  let currentSelectedGame: Game =  randomizedGames[currentGameIndex];
-  // "Gesichter" immer als erstes Spiel für Debug
-  // let currentSelectedGame: Game = {
-  //   ...games.find(g => g.name === "Gesichter")!,
-  //   id: 1,
-  //   points: 1
-  // } as Game;
-  // Restliche Spiele mischen, aber "Gesichter" bleibt vorn
-  randomizedGames = [
-    currentSelectedGame,
-    ...shuffle(games.filter(g => g.name)).map((game, idx) => ({
-      ...game,
-      id: idx + 2,
-      points: idx + 2
-    }))
-  ];
+  let currentSelectedGame: Game = randomizedGames[currentGameIndex];
   let isCardFlipped = false;
   let showFlipBoard = false;
   let isRevealPaused = false;
   let showGesichterGame = false;
-
-  // Liste der Bilder für Gesichter
-  const gesichterImages = [
-    '/gesichter/merkel.png',
-    '/gesichter/schumacher.png',
-    '/gesichter/klitschko.png',
-    '/gesichter/mercury.png',
-
-    // ... weitere Bilder
-  ];
 
   function awardPoints(winner: 'player1' | 'player2' | 'draw') {
     if (!currentSelectedGame || !isCardFlipped) return;
@@ -109,6 +93,7 @@
       player2Score += points;
       prepareNextGame();
     }
+    saveState();
     // Bei Unentschieden (draw) keine Punkte und kein prepareNextGame hier
   }
 
@@ -123,11 +108,13 @@
       console.log("Spiel vorbei!");
       // Hier könnte man z.B. einen Gewinner-Screen anzeigen
     }
+    saveState();
   }
 
   function handleRevealBtn() {
     showFlipBoard = true;
     isRevealPaused = false;
+    saveState();
   }
 
 
@@ -135,6 +122,7 @@
     showFlipBoard = false;
     isCardFlipped = true;
     isRevealPaused = false;
+    saveState();
   }
 
   // FlipBoard mit Leertaste skippen
@@ -156,32 +144,77 @@
     }
   }
 
-  // Event Listener für Keydown
+  // State speichern / laden
+  function saveState() {
+    const data: PersistedState = {
+      player1Score,
+      player2Score,
+      currentGameIndex,
+      randomizedGames,
+      isCardFlipped
+    };
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch { /* ignore */ }
+  }
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const data: PersistedState = JSON.parse(raw);
+      if (!Array.isArray(data.randomizedGames)) return;
+      randomizedGames = data.randomizedGames;
+      totalRounds = randomizedGames.length;
+      currentGameIndex = Math.min(data.currentGameIndex, randomizedGames.length - 1);
+      currentSelectedGame = randomizedGames[currentGameIndex];
+      player1Score = data.player1Score ?? 0;
+      player2Score = data.player2Score ?? 0;
+      isCardFlipped = data.isCardFlipped ?? false;
+      currentRound = currentSelectedGame.id;
+    } catch { /* ignore */ }
+  }
+
+  function resetState() {
+    try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    player1Score = 0;
+    player2Score = 0;
+    randomizedGames = buildInitialGames();
+    totalRounds = randomizedGames.length;
+    currentGameIndex = 0;
+    currentSelectedGame = randomizedGames[0];
+    currentRound = 1;
+    isCardFlipped = false;
+    showFlipBoard = false;
+    saveState();
+  }
+
+  let pageLoaded = false;
   onMount(() => {
+    loadState(); // Spielstand laden
+    setTimeout(() => {
+      pageLoaded = true;
+    }, 100);
+    
     window.addEventListener('keydown', handleKeydown);
     return () => {
       window.removeEventListener('keydown', handleKeydown);
     };
   });
 
-  let pageLoaded = false;
-  onMount(() => {
-    setTimeout(() => {
-      pageLoaded = true;
-    }, 100);
-  });
-
   function handleMapGameEnd(event: CustomEvent<{ winner: 0 | 1 | -1, wins: number[] }>) {
-  const { winner, wins } = event.detail;
-  if (winner === 0) {
-    awardPoints('player1');
-  } else if (winner === 1) {
-    awardPoints('player2');
+    const { winner, wins } = event.detail;
+    if (winner === 0) {
+      awardPoints('player1');
+    } else if (winner === 1) {
+      awardPoints('player2');
+    }
   }
-}
 </script>
 
 <div class="main-game-bg" class:loaded={pageLoaded}>
+  <!-- Button direkt hier platzieren -->
+  <button class="reset-btn" on:click={resetState} title="Spiel zurücksetzen">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path><path d="M21 21v-5h-5"></path></svg>
+  </button>
   {#if isCardFlipped && currentSelectedGame && currentSelectedGame.component}
     {#if currentSelectedGame.component === 'Sortieren'}
       <SortierenSession
@@ -591,6 +624,35 @@
     font-size: 1.1rem;
     color: #ffe066;
     margin-top: 0.5rem;
+  }
+  .reset-btn {
+    position: fixed; /* Positioniert relativ zum Fenster */
+    top: 20px;
+    right: 20px;
+    z-index: 1000; /* Stellt sicher, dass er über dem Audio-Button liegt */
+
+    background: rgba(40, 40, 45, 0.7);
+    color: #ffe066;
+    border: 1px solid rgba(255, 224, 102, 0.5);
+    border-radius: 50%; /* Macht ihn rund */
+    width: 45px;
+    height: 45px;
+    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    cursor: pointer;
+    backdrop-filter: blur(5px); /* Glaseffekt */
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    transition: all 0.2s ease;
+  }
+
+  .reset-btn:hover {
+    background: #ffe066;
+    color: #222;
+    transform: scale(1.1) rotate(90deg); /* Kleine Animation beim Hovern */
+    border-color: #ffe066;
   }
 
 </style>
