@@ -1,12 +1,11 @@
 <script lang="ts">
   import { createEventDispatcher, onMount } from 'svelte';
+  
   // import time functions if needed, e.g.:
   // import { sleep, wait } from './time'; // <-- adjust path and functions as needed
 
-  export let image = '';
   export let revealSpeed = 50; // ms pro Schritt (für Blur/Klassisch)
   export let tileSpeed = 150; // ms pro Kachel (nur Kachel-Modus)
-  export let points = 1;
   export let playerNames: string[] = [];
   export let mode: number = 0; // Initialwert, wird pro Session gesetzt
 
@@ -429,12 +428,6 @@ function nextRound() {
   letter-spacing: 0.04em;
   text-align: center;
 }
-.gesichter-game {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.5rem;
-}
 .image-container-big {
   position: relative;
   width: min(90vw, 80vh);
@@ -463,24 +456,6 @@ function nextRound() {
 }
 .score-corner-right {
   right: 18px;
-}
-.gameover-message {
-  margin-top: 2rem;
-  background: #ffe066;
-  color: #222;
-  padding: 1.5rem 2rem;
-  border-radius: 1.5rem;
-  font-family: 'Bebas Neue', sans-serif;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-  text-align: center;
-}
-.gameover-message.big h2 {
-  font-size: 3rem;
-}
-.gameover-message.big p {
-  font-size: 2.2rem;
-  font-weight: bold;
-  color: #c08401;
 }
 .face-image {
   width: 100%;
@@ -610,67 +585,6 @@ function nextRound() {
 .big-next-btn:active {
   transform: translateY(0px) scale(1);
   box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-}
-
-.gesichter-rules {
-  background-color: rgba(40, 40, 45, 0.85);
-  border: 1px solid #ffe06666;
-  border-radius: 1rem;
-  padding: 2rem 2.5rem;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.25), inset 0 0 10px rgba(255, 224, 102, 0.1);
-  color: #fffbe6;
-  font-family: 'Open Sans', sans-serif;
-  text-align: center;
-  max-width: 600px;
-  margin: 2rem auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.2rem;
-}
-.gesichter-rules h2 {
-  font-family: 'Bebas Neue', 'Impact', sans-serif;
-  color: #ffe066;
-  font-size: 2.2rem;
-  margin-bottom: 1rem;
-}
-.gesichter-rules .rules {
-  font-size: 1.1rem;
-  line-height: 1.6;
-  color: #fffbe6;
-  margin-bottom: 1.2rem;
-}
-.gesichter-rules .reveal-btn {
-  margin-top: 1rem;
-}
-
-.gameover-message.panel {
-  background-color: rgba(40, 40, 45, 0.85);
-  border: 1px solid #ffe06666;
-  border-radius: 1rem;
-  padding: 2rem 2.5rem;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.25), inset 0 0 10px rgba(255, 224, 102, 0.1);
-  color: #fffbe6;
-  font-family: 'Open Sans', sans-serif;
-  text-align: center;
-  max-width: 600px;
-  margin: 2rem auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.2rem;
-}
-.gameover-message.panel h2 {
-  font-family: 'Bebas Neue', 'Impact', sans-serif;
-  color: #ffe066;
-  font-size: 2.2rem;
-  margin-bottom: 1rem;
-}
-.gameover-message.panel .winner-text {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #c08401;
-  margin-bottom: 1.2rem;
 }
 
 /* Neue Styles für die Spielregeln-Intro */

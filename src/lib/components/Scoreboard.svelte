@@ -27,24 +27,24 @@
 
   // Ursprüngliche Spieleliste ohne Punkte
   let games: Omit<Game, 'id' | 'points'>[] = [
-    { name: "Blamieren oder Kassieren", rules: "Quizfragen beantworten.", frontLogo: "/BoK.png" },
-    { name: "Jenga", rules: "Turm bauen und abwechselnd Steine ziehen.", frontLogo: "/Jenga.png" },
-    { name: "Klackern", rules: "Abwechselndes Klackern: Der Ball darf weder den Boden noch den Körper berühren. Wer den Ball zuerst nicht fängt, verliert.", frontLogo: "/Klackern.png" },
-    { name: "Luft anhalten", rules: "Beide Teilnehmer müssen ihren Kopf unter Wasser halten. Wer zuerst auftaucht, verliert.", frontLogo: "/Luftanhalten.png" },
-    { name: "Sortieren", rules: "Die Teilnehmer müssen Antworten in eine Liste richtig einsortieren.", frontLogo: "/Sortieren.png", component: 'Sortieren' },
-    { name: "Wo ist das?",  rules: "Die Teilnehmer müssen auf einer Weltkarte den richtigen Ort markieren.", frontLogo: "/WoIstDas.png", component: 'MapGame' },
-    { name: "Die Flasche", rules: "Die Teilnehmer müssen abwechselnd mit einem Flaschendeckel eine auf dem Kopf stehende Flasche umschnipsen. Der erste, dem dies gelingt, ohne dass der andere es ebenfalls schafft, gewinnt das Spiel.", frontLogo: "/DieFlasche.png" },
-    { name: "Merken", rules: "Die Teilnehmer müssen sich die Positionen von Karten merken und diese dann richtig zuordnen.", frontLogo: "/Merken.png", component: 'MerkenGame' },
-    { name: "Erbsen",  rules: "Die Teilnehmer lassen abwechselnd eine Erbse vom Tischrand in eine Flasche fallen. Wer von zehn Würfen die meisten trifft, gewinnt das Spiel.", frontLogo: "/Erbsen.png" },
-    { name: "Koffer packen", rules: "Die Teilnehmer müssen abwechselnd einen Koffer mit vorgegebenen Gegenständen packen. Wer die meisten Gegenstände richtig einpackt, gewinnt das Spiel.", frontLogo: "/KofferPacken.png", component: 'KofferPackenGame' },
-    { name: "Dosenschießen", rules: "Die Teilnehmer müssen abwechselnd Dosen mit einem Fußball umschießen. Wer zuerst alle Dosen abgeräumt hat, gewinnt das Spiel.", frontLogo: "/Dosenschiessen.png" },
-    { name: "Mäxle", rules: "Die Teilnehmer würfeln abwechselnd mit zwei Würfeln und nennen eine Kombination, wobei sie auch lügen dürfen; der nächste Spieler kann die Ansage glauben und weiterwürfeln oder bezweifeln und aufdecken – wer beim Aufdecken lügt oder eine niedrigere Kombination würfelt, verliert. Wer zuerst  7 Punkte hat gewinnt das Spiel.", frontLogo: "/Maexle.png" },
-    { name: "Pusteball", rules: "Die Teilnehmer müssen über einen Tisch hinweg den Ball über die jeweils andere Tischkante pusten, fällt der Ball auf einer Seite runter erhält der andere Spieler einen Punkt.  Wer zuerst 7 Punkte hat gewinnt das Spiel.", frontLogo: "/Pusteball.png" },
-    { name: "Gesichter", rules: "Es werden langsam Bilder von Gesichtern bekannter Persönlichkeiten aufgedeckt. Wer zuerst das Gesicht erkennt, erhält einen Punkt bei falscher Antwort erhält der Gegner einen Punkt. Wer zuerst 7 Punkte hat gewinnt das Spiel.", frontLogo: "/Gesichter.png", component: 'Gesichter' },
-    { name: "Lattenschießen", rules: "Die Teilnehmer müssen abwechselnd versuchen, mit einem Ball die Latte eines Tors zu treffen. Wer die Latte trifft, erhält einen Punkt. Wer von 10 Schüssen die meisten trifft, gewinnt das Spiel.", frontLogo: "/Lattenschiessen.png"},
-    { name: "Flaschen schieben", rules: "Die Teilnehmer müssen eine Flasche, welche auf dem Kopf steht mit dem Fuß eine bestimmte Strecke schieben. Fällt die Flasche um muss von der Startlinie neu begonnen werden. Wer zuerst die Strecke bewältigt gewinnt das Spiel.", frontLogo: "/FlascheSchieben.png" },
-    { name: "Würfel rechnen", rules: "Es werden fünf Würfel geworfen, die Teilnehmer müssen das Produkt der Würfel berechnen. Wer zuerst die richtige Summe nennt, gewinnt die Runde. Wer zuerst 7 Punkte hat, gewinnt das Spiel.", frontLogo: "/WuerfelRechnen.png" },
-    { name: "Buchstaben", rules: "Den Teilnehmern wird ein Wort vorgelesen und sie müssen die Anzahl der Buchstaben im Wort nennen. Wer die richtige Anzahl zuerst nennt, erhält einen Punkt, wird die Falsche Anzahl genannt, erhält der Gegner einen Punkt. Der erste mit 5 Punkten gewinnt das Spiel.", frontLogo: "/Buchstaben.png" },
+    { name: "Blamieren oder Kassieren", rules: "Quizfragen beantworten.", frontLogo: "/Logos/BoK.png" },
+    { name: "Jenga", rules: "Turm bauen und abwechselnd Steine ziehen.", frontLogo: "/Logos/Jenga.png" },
+    { name: "Klackern", rules: "Abwechselndes Klackern: Der Ball darf weder den Boden noch den Körper berühren. Wer den Ball zuerst nicht fängt, verliert.", frontLogo: "/Logos/Klackern.png" },
+    { name: "Luft anhalten", rules: "Beide Teilnehmer müssen ihren Kopf unter Wasser halten. Wer zuerst auftaucht, verliert.", frontLogo: "/Logos/Luftanhalten.png" },
+    { name: "Sortieren", rules: "Die Teilnehmer müssen Antworten in eine Liste richtig einsortieren.", frontLogo: "/Logos/Sortieren.png", component: 'Sortieren' },
+    { name: "Wo ist das?",  rules: "Die Teilnehmer müssen auf einer Weltkarte den richtigen Ort markieren.", frontLogo: "/Logos/WoIstDas.png", component: 'MapGame' },
+    { name: "Die Flasche", rules: "Die Teilnehmer müssen abwechselnd mit einem Flaschendeckel eine auf dem Kopf stehende Flasche umschnipsen. Der erste, dem dies gelingt, ohne dass der andere es ebenfalls schafft, gewinnt das Spiel.", frontLogo: "/Logos/DieFlasche.png" },
+    { name: "Merken", rules: "Die Teilnehmer müssen sich die Positionen von Karten merken und diese dann richtig zuordnen.", frontLogo: "/Logos/Merken.png", component: 'MerkenGame' },
+    { name: "Erbsen",  rules: "Die Teilnehmer lassen abwechselnd eine Erbse vom Tischrand in eine Flasche fallen. Wer von zehn Würfen die meisten trifft, gewinnt das Spiel.", frontLogo: "/Logos/Erbsen.png" },
+    { name: "Koffer packen", rules: "Die Teilnehmer müssen abwechselnd einen Koffer mit vorgegebenen Gegenständen packen. Wer die meisten Gegenstände richtig einpackt, gewinnt das Spiel.", frontLogo: "/Logos/KofferPacken.png", component: 'KofferPackenGame' },
+    { name: "Dosenschießen", rules: "Die Teilnehmer müssen abwechselnd Dosen mit einem Fußball umschießen. Wer zuerst alle Dosen abgeräumt hat, gewinnt das Spiel.", frontLogo: "/Logos/Dosenschiessen.png" },
+    { name: "Mäxle", rules: "Die Teilnehmer würfeln abwechselnd mit zwei Würfeln und nennen eine Kombination, wobei sie auch lügen dürfen; der nächste Spieler kann die Ansage glauben und weiterwürfeln oder bezweifeln und aufdecken – wer beim Aufdecken lügt oder eine niedrigere Kombination würfelt, verliert. Wer zuerst  7 Punkte hat gewinnt das Spiel.", frontLogo: "/Logos/Maexle.png" },
+    { name: "Pusteball", rules: "Die Teilnehmer müssen über einen Tisch hinweg den Ball über die jeweils andere Tischkante pusten, fällt der Ball auf einer Seite runter erhält der andere Spieler einen Punkt.  Wer zuerst 7 Punkte hat gewinnt das Spiel.", frontLogo: "/Logos/Pusteball.png" },
+    { name: "Gesichter", rules: "Es werden langsam Bilder von Gesichtern bekannter Persönlichkeiten aufgedeckt. Wer zuerst das Gesicht erkennt, erhält einen Punkt bei falscher Antwort erhält der Gegner einen Punkt. Wer zuerst 7 Punkte hat gewinnt das Spiel.", frontLogo: "/Logos/Gesichter.png", component: 'Gesichter' },
+    { name: "Lattenschießen", rules: "Die Teilnehmer müssen abwechselnd versuchen, mit einem Ball die Latte eines Tors zu treffen. Wer die Latte trifft, erhält einen Punkt. Wer von 10 Schüssen die meisten trifft, gewinnt das Spiel.", frontLogo: "/Logos/Lattenschiessen.png"},
+    { name: "Flaschen schieben", rules: "Die Teilnehmer müssen eine Flasche, welche auf dem Kopf steht mit dem Fuß eine bestimmte Strecke schieben. Fällt die Flasche um muss von der Startlinie neu begonnen werden. Wer zuerst die Strecke bewältigt gewinnt das Spiel.", frontLogo: "/Logos/FlascheSchieben.png" },
+    { name: "Würfel rechnen", rules: "Es werden fünf Würfel geworfen, die Teilnehmer müssen das Produkt der Würfel berechnen. Wer zuerst die richtige Summe nennt, gewinnt die Runde. Wer zuerst 7 Punkte hat, gewinnt das Spiel.", frontLogo: "/Logos/WuerfelRechnen.png" },
+    { name: "Buchstaben", rules: "Den Teilnehmern wird ein Wort vorgelesen und sie müssen die Anzahl der Buchstaben im Wort nennen. Wer die richtige Anzahl zuerst nennt, erhält einen Punkt, wird die Falsche Anzahl genannt, erhält der Gegner einen Punkt. Der erste mit 5 Punkten gewinnt das Spiel.", frontLogo: "/Logos/Buchstaben.png" },
     // ... mehr Spiele
   ];
 
@@ -68,13 +68,13 @@
 
   let totalRounds = randomizedGames.length;
   let currentGameIndex = 0;
-  // let currentSelectedGame: Game =  randomizedGames[currentGameIndex];
+  let currentSelectedGame: Game =  randomizedGames[currentGameIndex];
   // "Gesichter" immer als erstes Spiel für Debug
-  let currentSelectedGame: Game = {
-    ...games.find(g => g.name === "Gesichter")!,
-    id: 1,
-    points: 1
-  } as Game;
+  // let currentSelectedGame: Game = {
+  //   ...games.find(g => g.name === "Gesichter")!,
+  //   id: 1,
+  //   points: 1
+  // } as Game;
   // Restliche Spiele mischen, aber "Gesichter" bleibt vorn
   randomizedGames = [
     currentSelectedGame,
@@ -304,10 +304,8 @@
       }} />
     {:else if currentSelectedGame.component === 'Gesichter'}
       <Gesichter
-        image={gesichterImages[currentGameIndex % gesichterImages.length]}
         revealSpeed={200} 
         tileSpeed={500}
-        points={currentSelectedGame.points}
         playerNames={[player1Name, player2Name]}
         on:buzz={(e) => {
           const idx = e.detail.player;
