@@ -1,13 +1,12 @@
 // src/lib/audioStore.ts
 import { writable } from 'svelte/store';
 
-// Zustand für Play/Pause
 export const isPlaying = writable(false);
+export const volume = writable(0.5);
 
-// NEU: Zustand für die Lautstärke (Wert zwischen 0 und 1)
-export const volume = writable(0.5); // Startet bei 50% Lautstärke
+// NEU: Ein Store, um die Haupt-Musik stummzuschalten, wenn eine andere wichtige Musik läuft.
+export const isMusicOverridden = writable(false);
 
-// Funktion zum Umschalten von Play/Pause
 export function toggleAudio() {
   isPlaying.update(playing => !playing);
 }

@@ -8,6 +8,8 @@
   import KofferPackenGame from '$lib/games/KofferPackenGame.svelte';
   import Gesichter from '$lib/games/Gesichter.svelte';
   import { onMount } from 'svelte';
+  import WinnerScreen from './WinnerScreen.svelte';
+  import { isMusicOverridden } from '$lib/audioStore';
 
   // Typdefinition für ein Spiel
   type Game = {
@@ -83,6 +85,10 @@
   let isRevealPaused = false;
   let showGesichterGame = false;
 
+  // Neue Zustandsvariablen hinzufügen
+  let showWinnerScreen = false;
+  let winnerName = '';
+
   function awardPoints(winner: 'player1' | 'player2' | 'draw') {
     if (!currentSelectedGame || !isCardFlipped) return;
     const points = currentSelectedGame.points;
@@ -97,18 +103,41 @@
     // Bei Unentschieden (draw) keine Punkte und kein prepareNextGame hier
   }
 
+  // Die Funktion prepareNextGame anpassen
+  // Die Funktion prepareNextGame anpassen
   function prepareNextGame() {
-    isCardFlipped = false;
-    currentGameIndex++;
-    if (currentGameIndex < randomizedGames.length) {
+    // Prüfen, ob das gerade beendete Spiel das letzte war
+    if (currentGameIndex >= randomizedGames.length - 1) {
+      // Spiel ist vorbei, zeige den Gewinnerbildschirm
+      if (player1Score > player2Score) {
+        winnerName = player1Name;
+      } else if (player2Score > player1Score) {
+        winnerName = player2Name;
+      } else {
+        winnerName = "Niemand"; // Unentschieden
+      }
+      isMusicOverridden.set(true);
+      showWinnerScreen = true;
+      
+      // Setze den Index auf einen "fertig" Zustand und speichere
+      currentGameIndex = randomizedGames.length;
+      isCardFlipped = false; // Verhindert, dass die alte Spielkarte angezeigt wird
+      saveState();
+    } else {
+      // Es gibt noch weitere Spiele
+      isCardFlipped = false;
+      currentGameIndex++;
       currentSelectedGame = randomizedGames[currentGameIndex];
       currentRound = currentSelectedGame.id;
-    } else {
-      // Spiel vorbei Logik
-      console.log("Spiel vorbei!");
-      // Hier könnte man z.B. einen Gewinner-Screen anzeigen
+      saveState();
     }
-    saveState();
+  }
+
+  // Neue Funktion für "Nochmal spielen"
+  function handlePlayAgain() {
+    resetState(); // Setzt das Spiel zurück
+    showWinnerScreen = false;
+    winnerName = '';
   }
 
   function handleRevealBtn() {
@@ -161,18 +190,38 @@
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return;
       const data: PersistedState = JSON.parse(raw);
-      if (!Array.isArray(data.randomizedGames)) return;
+      if (!Array.isArray(data.randomizedGames) || data.randomizedGames.length === 0) return;
+      
       randomizedGames = data.randomizedGames;
       totalRounds = randomizedGames.length;
-      currentGameIndex = Math.min(data.currentGameIndex, randomizedGames.length - 1);
-      currentSelectedGame = randomizedGames[currentGameIndex];
       player1Score = data.player1Score ?? 0;
       player2Score = data.player2Score ?? 0;
       isCardFlipped = data.isCardFlipped ?? false;
-      currentRound = currentSelectedGame.id;
+      currentGameIndex = data.currentGameIndex ?? 0;
+
+      if (currentGameIndex >= randomizedGames.length) {
+        // Spiel ist vorbei. Zeige den Gewinnerbildschirm.
+        if (player1Score > player2Score) {
+          winnerName = player1Name;
+        } else if (player2Score > player1Score) {
+          winnerName = player2Name;
+        } else {
+          winnerName = "Niemand"; // Unentschieden
+        }
+        isMusicOverridden.set(true);
+        showWinnerScreen = true;
+        // Um Fehler zu vermeiden, verweisen wir auf das letzte Spiel.
+        currentSelectedGame = randomizedGames[randomizedGames.length - 1];
+        currentRound = currentSelectedGame.id;
+      } else {
+        // Spiel läuft.
+        currentSelectedGame = randomizedGames[currentGameIndex];
+        currentRound = currentSelectedGame.id;
+      }
     } catch { /* ignore */ }
   }
 
+  // Die resetState Funktion anpassen
   function resetState() {
     try { localStorage.removeItem(STORAGE_KEY); } catch {}
     player1Score = 0;
@@ -184,6 +233,7 @@
     currentRound = 1;
     isCardFlipped = false;
     showFlipBoard = false;
+    isMusicOverridden.set(false); 
     saveState();
   }
 
@@ -210,9 +260,13 @@
   }
 </script>
 
+{#if showWinnerScreen}
+  <WinnerScreen {winnerName} on:playAgain={handlePlayAgain} />
+{/if}
+
 <div class="main-game-bg" class:loaded={pageLoaded}>
   <!-- Button direkt hier platzieren -->
-  <button class="reset-btn" on:click={resetState} title="Spiel zurücksetzen">
+  <button class="reset-btn" on:click={resetState} title="Spiel zurücksetzen" aria-label="Spiel zurücksetzen">
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path><path d="M21 21v-5h-5"></path></svg>
   </button>
   {#if isCardFlipped && currentSelectedGame && currentSelectedGame.component}

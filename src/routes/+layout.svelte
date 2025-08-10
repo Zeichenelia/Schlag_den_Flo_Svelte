@@ -1,11 +1,13 @@
 <!-- src/routes/+layout.svelte -->
 <script lang="ts">
-  import { isPlaying, toggleAudio, volume } from '$lib/audioStore';
+  // isMusicOverridden importieren
+  import { isPlaying, toggleAudio, volume, isMusicOverridden } from '$lib/audioStore';
 
   let audio: HTMLAudioElement;
 
   $: if (audio) {
-    if ($isPlaying) {
+    // Die Musik spielt nur, wenn sie soll UND nicht von einer anderen übersteuert wird.
+    if ($isPlaying && !$isMusicOverridden) {
       audio.play().catch(error => console.error("Audio konnte nicht gestartet werden:", error));
     } else {
       audio.pause();
