@@ -75,7 +75,15 @@
     // Alle Spiele zufällig mischen
     return shuffle([...games]).map((g, idx) => ({ ...g, id: idx + 1, points: idx + 1 }));
   }
-
+  // function buildInitialGames(): Game[] {
+  // // Wo ist das?-Spiel immer an erster Stelle, Rest mischen
+  // const woIstDasGame = games.find(g => g.name === "Wo ist das?");
+  // const otherGames = games.filter(g => g.name !== "Wo ist das?");
+  // const shuffled = shuffle([...otherGames]);
+  // const allGames = woIstDasGame ? [woIstDasGame, ...shuffled] : shuffled;
+  // return allGames.map((g, idx) => ({ ...g, id: idx + 1, points: idx + 1 }));
+  // }
+  
   let randomizedGames: Game[] = buildInitialGames();
   let totalRounds = randomizedGames.length;
   let currentGameIndex = 0;
@@ -359,8 +367,93 @@
             ],
             labelOben:"Weniger",
             labelUnten:"Mehr"
-          }
+          },
+          {
+            label: "Meist verkaufte Tonträger Weltweit in Millionen", //https://www.accio.com/business/top-10-best-selling-artists-of-all-time-worldwide?utm_source=chatgpt.com
+            items: [
+              { name: "The Beatles", year: 521 },
+              { name: "Micheal Jackson", year: 346 },
+              { name: "Elvis Presley", year: 325 },
+              { name: "Elton John", year: 79 },
+              { name: "Eagles", year: 120 },
+              { name: "Garth Brooks", year: 157 },
+              { name: "AC/DC", year: 75},
+              { name: "Billy Joel", year: 85 },
+              { name: "Pink Floyd", year: 75},
+              { name: "Led Zeppelin", year: 112 }
+            ],
+            labelOben:"Weniger",
+            labelUnten:"Mehr"
+          },
+          {
+            label: "Bundesliga Manschaften nach Marktwert in Millionen € (Stand August 2025)", //https://de.statista.com/statistik/daten/studie/216031/umfrage/marktwert-der-bundesligamannschaften/
+            items: [
+              { name: "FC Bayern München", year: 906 },
+              { name: "RB Leipzig", year: 486 },
+              { name: "Bayer 04 Leverkusen", year: 408 },
+              { name: "Borussia Dortmund", year: 402 },
+              { name: "VfL Wolfsburg", year: 276 },
+              { name: "Eintracht Frankfurt", year: 342 },
+              { name: "SC Freiburg", year: 171 },
+              { name: "VfB Stuttgart", year: 295 },
+              { name: "Borussia Mönchengladbach", year: 147 },
+              { name: "TSG 1899 Hoffenheim", year: 162 },
+              { name: "FSV Mainz 05", year: 139 }
+            ],
+            labelOben: "Niedrig",
+            labelUnten: "Hoch"
+          },
+          {
+            label: "Deutsche Twitch Streamer nach aktuellen Subs (Stand 12 Juli 2025)", //https://twitchtracker.com/subscribers/german
+            items: [
+              { name: "Papaplatte", year: 37582 },
+              { name: "eliasn97", year: 25871 },
+              { name: "zarbex", year: 20567 },
+              { name: "PietSmiet", year: 14290 },
+              { name: "Shlorox", year: 13150 },
+              { name: "MontanaBlack88", year: 11941 },
+              { name: "NoWay4u_Sir", year: 11365 },
+              { name: "Sintica", year: 11285 },
+              { name: "GRONKH", year: 10347 },
+              { name: "metashi12", year: 9850 }
+            ],
+            labelOben: "Weniger",
+            labelUnten: "Mehr"
+          },
+          {
+          label: "Schauspieler nach ihrem Geburtsjahr",
+          items: [
+            { name: "Robert Downey Jr.", year: 1965 },
+            { name: "Chris Hemsworth", year: 1983 },
+            { name: "Scarlett Johansson", year: 1984 },
+            { name: "George Clooney", year: 1961 },
+            { name: "Marlon Brando", year: 1924 },
+            { name: "Chris Evans", year: 1981 },
+            { name: "Brad Pitt", year: 1963 },
+            { name: "Leonardo DiCaprio", year: 1974 },
+            { name: "Benedict Cumberbatch", year: 1976 },
+            { name: "Samuel L. Jackson", year: 1948 }
+          ],
+          labelOben: "früh",
+          labelUnten: "spät"
+        },
+        {
+          label: "Dienstgrade der Bundeswehr",
+          items: [
+            { name: "Gefreiter", year: 8 },
+            { name: "Unteroffizier", year: 7 },
+            { name: "Feldwebel", year: 6 },
+            { name: "Leutnant", year: 5 },
+            { name: "Hauptmann", year: 4 },
+            { name: "Major", year: 3 },
+            { name: "Oberst", year: 2 },
+            { name: "General", year: 1 }
+          ],
+          labelOben: "hoch",
+          labelUnten: "niedrig"
+        }
         ]}
+        
         points={currentSelectedGame.points}
         playerNames={[player1Name, player2Name]}
         onSessionEnd={(winner) => {

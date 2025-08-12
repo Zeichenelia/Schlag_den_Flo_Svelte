@@ -8,62 +8,91 @@
   };
   export let listen: SortierListe[];
   export let playerNames: string[] = ["Flo", "Kandidat"];
-export const points: number = 0;
+  export const points: number = 0;
   export let onSessionEnd: (winner: 0 | 1) => void;
 
+  let showIntro = true;
+  let wins = [0, 0]; // [player1, player2]
+  let showSortieren = true;
+  let roundNumber = 0; // Für UI: wie viele Runden wurden gespielt (inkl. Unentschieden)
+  const ROUNDS_TO_WIN = 4;
 
-let showIntro = true;
-let round = 0;
-let wins = [0, 0]; // [player1, player2]
-let showSortieren = true;
-let roundNumber = 0; // Aktuelle Runde, wird für UI verwendet
-function handleGameEnd(event: CustomEvent<{ winner: 0 | 1 | -1 }>) {
-  if (event.detail.winner === 0) {
-    wins[0]++;
-    roundNumber++;
-  } else if (event.detail.winner === 1) {
-    wins[1]++;
-    roundNumber++;
-  } else if (event.detail.winner === -1) {
-    // Unentschieden: keine Punkte vergeben
+  // Gemischte Listen für die Session
+  let sessionListen: typeof listen = [];
+  let round = 0; // Index in sessionListen
+
+  function shuffle<T>(array: T[]): T[] {
+    let arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
   }
-  if (wins[0] === 2 || wins[1] === 2) {
-    showSortieren = false;
-    setTimeout(() => {
-      onSessionEnd?.(wins[0] === 2 ? 0 : 1);
-    }, 500); // Kurze Pause für UI
-    return;
+
+  function startSession() {
+    sessionListen = shuffle(listen);
+    round = 0;
+    wins = [0, 0];
+    roundNumber = 0;
+    showSortieren = true;
   }
-  round++;
-}
-function handleStartGame() {
-  showIntro = false;
-}
+
+  function handleGameEnd(event: CustomEvent<{ winner: 0 | 1 | -1 }>) {
+    if (event.detail.winner === 0) {
+      wins[0]++;
+      roundNumber++;
+    } else if (event.detail.winner === 1) {
+      wins[1]++;
+      roundNumber++;
+    } else if (event.detail.winner === -1) {
+      // Unentschieden: keine Punkte vergeben, aber Runde zählt trotzdem
+      roundNumber++;
+    }
+    // Session-Ende prüfen
+    if (wins[0] === ROUNDS_TO_WIN || wins[1] === ROUNDS_TO_WIN) {
+      showSortieren = false;
+      setTimeout(() => {
+        onSessionEnd?.(wins[0] > wins[1] ? 0 : 1);
+      }, 500);
+      return;
+    }
+    round++;
+    // Wenn Listen aufgebraucht, neue zufällige Reihenfolge aus allen Listen
+    if (round >= sessionListen.length) {
+      sessionListen = shuffle(listen);
+      round = 0;
+    }
+  }
+  function handleStartGame() {
+    showIntro = false;
+    startSession();
+  }
 </script>
 
 {#if showIntro}
   <div class="sortieren-intro">
     <h2>Sortieren – Spielregeln</h2>
     <ul>
-      <li>Ihr spielt Best-of-3: Wer zuerst 2 Runden gewinnt, holt die Punkte.</li>
-      <li>In jeder Runde müsst ihr eine gegebene Liste korrekt in eine Reihenfolge anhand eines Referenzbeispiels einsortieren.</li>
+      <li>Ihr spielt Best-of-7: Wer zuerst 4 Runden gewinnt, holt die Punkte.</li>
+      <li>In jeder Runde wird eine zufällige Liste verwendet.</li>
       <li>Wer falsch einsortiert, verliert eins von drei Leben. Wer keine Leben mehr hat, verliert die Runde.</li>
       <li>Die Achsen-Beschriftungen zeigen, wie sortiert werden soll.</li>
-      <li>Bei Unentschieden gibt es keine Punkte.</li>
+      <li>Bei Unentschieden gibt es keine Punkte, es wird einfach die nächste Liste gespielt.</li>
     </ul>
     <button class="start-btn" on:click={handleStartGame}>Spiel starten</button>
   </div>
 {:else if showSortieren}
   <Sortieren
-    items={listen[round].items}
-    label={listen[round].label}
-    labelOben={listen[round].labelOben}
-    labelUnten={listen[round].labelUnten}
+    items={sessionListen[round].items}
+    label={sessionListen[round].label}
+    labelOben={sessionListen[round].labelOben}
+    labelUnten={sessionListen[round].labelUnten}
     playerNames={playerNames}
     on:gameEnd={handleGameEnd}
   />
   <div class="sortieren-session-info-bottom">
-    <div>Runde {roundNumber + 1} von 3 &ndash; Best of 3</div>
+    <div>Runde {roundNumber + 1} &ndash; Ziel: 4 Siege</div>
     <div>{playerNames[0]}: {wins[0]} &nbsp;|&nbsp; {playerNames[1]}: {wins[1]}</div>
   </div>
 {/if}

@@ -2,19 +2,16 @@
   import { createEventDispatcher } from 'svelte';
   const dispatch = createEventDispatcher();
 
-    export let items: { name: string; year: number }[];
-    export let label: string;
-    export let labelOben: string;
-    export let labelUnten: string;
-
-    export let playerNames: string[];
-
+  export let items: { name: string; year: number }[];
+  export let label: string;
+  export let labelOben: string;
+  export let labelUnten: string;
+  export let playerNames: string[];
 
   // Referenzkanzler und zu sortierende Liste werden jetzt zufällig gewählt
   function getRandomInt(max: number) {
     return Math.floor(Math.random() * max);
   }
-
 
   // Initialwerte für das Spiel (werden bei items-Änderung neu gesetzt)
   let refIndex: number;
@@ -36,7 +33,6 @@
     sortedList = [items[refIndex]];
     toPlace = items.filter((_, i) => i !== refIndex).sort(() => Math.random() - 0.5);
     allPlaced = false;
-    // Wenn currentPlayer gesetzt ist (z.B. von außen), dann: beim ersten Mal random, danach abwechselnd
     if (typeof currentPlayer === 'undefined' || currentPlayer === null) {
       if (lastStartingPlayer === null) {
         currentPlayer = getRandomInt(2) + 1;
@@ -47,7 +43,6 @@
     lastStartingPlayer = currentPlayer;
     playerLives = [3, 3];
     gameOver = false;
-    // Drag & Drop Status zurücksetzen
     draggedIndex = null;
     dragOverIndex = null;
     lastPlacedIdx = null;
@@ -55,19 +50,17 @@
   }
 
   // Drag & Drop
-
   let draggedIndex: number | null = null;
   let dragOverIndex: number | null = null;
-  let lastPlacedIdx: number | null = null; // Index im sortedList, wo zuletzt einsortiert wurde
-  let lastPlacedCorrect: boolean | null = null; // true = richtig, false = falsch
+  let lastPlacedIdx: number | null = null;
+  let lastPlacedCorrect: boolean | null = null;
 
   function handleDragStart(idx: number) {
     draggedIndex = idx;
   }
-function handleDrop(idx: number) {
+  function handleDrop(idx: number) {
     if (draggedIndex === null) return;
     const item = toPlace[draggedIndex];
-    // Finde die erlaubten Jahr-Bereiche für die Drop-Position
     let min = -Infinity;
     let max = Infinity;
     if (sortedList.length > 0) {
@@ -78,7 +71,6 @@ function handleDrop(idx: number) {
         max = sortedList[idx].year;
       }
     }
-    // Prüfe, ob die Antwort korrekt ist
     const isCorrect = item.year > min && item.year < max;
     lastPlacedIdx = idx;
     lastPlacedCorrect = isCorrect;
@@ -95,44 +87,35 @@ function handleDrop(idx: number) {
       } else {
         currentPlayer = currentPlayer === 1 ? 2 : 1;
       }
-      // Feedback nach kurzer Zeit zurücksetzen
       revertTimeout = setTimeout(() => {
         lastPlacedIdx = null;
         lastPlacedCorrect = null;
       }, 900);
     } else {
-      // Falsch: temporär einsortieren, dann zurück
       const tempSorted = [
         ...sortedList.slice(0, idx),
         item,
         ...sortedList.slice(idx)
       ];
       sortedList = tempSorted;
-      // Leben abziehen
       playerLives[currentPlayer-1] = Math.max(0, playerLives[currentPlayer-1] - 1);
-      // Prüfe auf Game Over
       if (playerLives[currentPlayer-1] === 0) {
         gameOver = true;
-        // Alle restlichen Einträge einsortieren
-        sortedList = [...sortedList, ...toPlace];
+        sortedList = [...sortedList, ...toPlace].sort((a, b) => a.year - b.year);
         toPlace = [];
         allPlaced = true;
       }
-      // Feedback nach kurzer Zeit zurücksetzen und zurückordnen
       revertTimeout = setTimeout(() => {
         if (!gameOver) {
-          // Entferne das Item wieder aus sortedList
           sortedList = sortedList.filter((k, i2) => !(i2 === idx && k === item));
         }
         lastPlacedIdx = null;
         lastPlacedCorrect = null;
         if (!gameOver) {
-          // Nächster Spieler
           currentPlayer = currentPlayer === 1 ? 2 : 1;
         }
       }, 900);
     }
-    // Drag & Drop Status zurücksetzen
     draggedIndex = null;
     dragOverIndex = null;
   }

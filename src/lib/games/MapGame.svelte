@@ -5,17 +5,6 @@
 
   let showIntro = true;
 
-  function startGame() {
-    showIntro = false;
-  }
-
-  function endMapGame() {
-    // Punkte an Scoreboard melden
-    let winner: 0 | 1 | -1 = -1;
-    if (wins[0] > wins[1]) winner = 0;
-    else if (wins[1] > wins[0]) winner = 1;
-    dispatch('sessionEnd', { winner, wins });
-  }
   // Fragen und Lösungen (SVG-Koordinaten, z.B. Rom)
   type Question = {
     text: string;
@@ -43,20 +32,53 @@
       text: 'Wo wurde der Komponist der Zauberflöte geboren?',
       solution: { x: 1053, y: 195 } // Salzburg, Österreich (Hagenauerhaus)
     },
-
-
-
-
+    {
+      text: "Wo finden jährlich die Tomatina statt, bei der sich Menschen mit tonnenweise Tomaten bewerfen?",
+      solution: { x: 983, y: 249 } // Buñol, Spanien
+    },
+    {
+      text: "Wo startet jährlich das wohl bekannteste und gefährlichste Motorradrennen der Welt?",
+      solution: { x: 964, y: 157 } // Isle of Man
+    }
   ];
 
-let currentRound = 0;
-let pins: { x: number; y: number }[] = [];
-let tempPin: { x: number; y: number } | null = null;
-let activePlayer = 0; // 0 = Flo, 1 = Kandidat
-let wins = [0, 0];
-let showSolution = false;
-let bo5Winner: number | null = null;
-let roundStarter = 0; // 0 = Flo, 1 = Kandidat
+  let currentRound = 0;
+  let pins: { x: number; y: number }[] = [];
+  let tempPin: { x: number; y: number } | null = null;
+  let activePlayer = 0; // 0 = Flo, 1 = Kandidat
+  let wins = [0, 0];
+  let showSolution = false;
+  let bo7Winner: number | null = null;
+  let roundStarter = 0; // 0 = Flo, 1 = Kandidat
+
+  let sessionQuestions: Question[] = [];
+
+  function shuffle<T>(array: T[]): T[] {
+    let arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function startGame() {
+    showIntro = false;
+    sessionQuestions = shuffle(questions);
+    currentRound = 0;
+    wins = [0, 0];
+    bo7Winner = null;
+    roundStarter = Math.random() < 0.5 ? 0 : 1;
+    activePlayer = roundStarter;
+  }
+
+  function endMapGame() {
+    // Punkte an Scoreboard melden
+    let winner: 0 | 1 | -1 = -1;
+    if (wins[0] > wins[1]) winner = 0;
+    else if (wins[1] > wins[0]) winner = 1;
+    dispatch('sessionEnd', { winner, wins });
+  }
 
   // Zoom-Logik
   let zoom = 1;
@@ -104,14 +126,8 @@ let roundStarter = 0; // 0 = Flo, 1 = Kandidat
     candidateZoom = Math.min(candidateZoom, maxZoom);
     const newZoom = Math.max(1, candidateZoom);
     if (newZoom !== zoom) {
-      // Korrektes Zoomverhalten: Der Punkt unter dem Mauszeiger bleibt unter dem Mauszeiger
-      // Berechne neuen ViewBox-Ausschnitt so, dass relX/relY gleich bleibt
       const newW = baseW / newZoom;
       const newH = baseH / newZoom;
-      // Der Punkt unter dem Cursor soll nach dem Zoom an der gleichen relativen Stelle bleiben
-      // Also: newVbX + relX * newW = svgX
-      // => newVbX = svgX - relX * newW
-      // Analog für Y
       const newVbX = svgX - relX * newW;
       const newVbY = svgY - relY * newH;
       zoomX = newVbX + newW / 2;
@@ -121,13 +137,11 @@ let roundStarter = 0; // 0 = Flo, 1 = Kandidat
     }
   }
 
-
   // Pan-Logik
   let isPanning = false;
   let panStart = { x: 0, y: 0, zoomX: 0, zoomY: 0 };
 
   function handlePointerDown(e: PointerEvent) {
-    // Nur linke Maustaste (0) für Pan
     if (e.button === 0) {
       isPanning = true;
       panStart.x = e.clientX;
@@ -143,7 +157,6 @@ let roundStarter = 0; // 0 = Flo, 1 = Kandidat
     const baseW = 2000, baseH = 857;
     const w = baseW / zoom;
     const h = baseH / zoom;
-    // Verschiebung in SVG-Koordinaten
     const dx = (e.clientX - panStart.x) * (w / zoomContainer.clientWidth);
     const dy = (e.clientY - panStart.y) * (h / zoomContainer.clientHeight);
     zoomX = panStart.zoomX - dx;
@@ -160,7 +173,6 @@ let roundStarter = 0; // 0 = Flo, 1 = Kandidat
 
   function handleMapContextMenu(event: MouseEvent) {
     event.preventDefault();
-    // Rechtsklick: Pin setzen
     const svg = event.currentTarget as SVGSVGElement;
     const rect = svg.getBoundingClientRect();
     const styleWidth = rect.width;
@@ -177,7 +189,6 @@ let roundStarter = 0; // 0 = Flo, 1 = Kandidat
 
   function confirmPin() {
     if (tempPin) {
-      // Bestimme, welcher Spieler gerade am Zug ist: roundStarter beginnt, dann der andere
       pins[activePlayer] = tempPin;
       tempPin = null;
       zoom = 1;
@@ -188,19 +199,16 @@ let roundStarter = 0; // 0 = Flo, 1 = Kandidat
         showSolution = true;
         setTimeout(() => zoomToPinsAndSolution(), 100);
       } else {
-        // Spielerwechsel: Der andere Spieler ist dran
         activePlayer = activePlayer === 0 ? 1 : 0;
       }
     }
   }
 
-  // Interaktion sperren, wenn Lösung angezeigt wird
   $: interactionLocked = showSolution && pins.length === 2;
 
-  // Blauer Kreis um Lösung: Abstand zum näheren Pin
   $: solutionCircle = (() => {
     if (!showSolution || pins.length !== 2) return null;
-    const sol = questions[currentRound].solution;
+    const sol = sessionQuestions[currentRound].solution;
     const d0 = Math.hypot(pins[0].x - sol.x, pins[0].y - sol.y);
     const d1 = Math.hypot(pins[1].x - sol.x, pins[1].y - sol.y);
     const r = Math.min(d0, d1);
@@ -209,25 +217,21 @@ let roundStarter = 0; // 0 = Flo, 1 = Kandidat
 
   function zoomToPinsAndSolution() {
     if (pins.length < 2 || !showSolution) return;
-    const sol = questions[currentRound].solution;
+    const sol = sessionQuestions[currentRound].solution;
     const points = [pins[0], pins[1], sol];
     let minX = Math.min(...points.map(p => p.x));
     let maxX = Math.max(...points.map(p => p.x));
     let minY = Math.min(...points.map(p => p.y));
     let maxY = Math.max(...points.map(p => p.y));
-    // Padding in SVG-Pixeln
     const pad = 60;
     minX -= pad; maxX += pad; minY -= pad; maxY += pad;
-    // Begrenzung auf SVG
     minX = Math.max(0, minX); minY = Math.max(0, minY);
     maxX = Math.min(2000, maxX); maxY = Math.min(857, maxY);
-    // Neue ViewBox berechnen
     const w = maxX - minX;
     const h = maxY - minY;
-    // Zoom so, dass alles reinpasst
     const zoomW = 2000 / w;
     const zoomH = 857 / h;
-    zoom = Math.min(zoomW, zoomH, 12); // Maximal 12x Zoom
+    zoom = Math.min(zoomW, zoomH, 12);
     zoomX = minX + w / 2;
     zoomY = minY + h / 2;
     updateViewBox();
@@ -235,7 +239,6 @@ let roundStarter = 0; // 0 = Flo, 1 = Kandidat
 
   function handleKeyDown(e: KeyboardEvent) {
     if (e.key === 'Enter' || e.key === ' ') {
-      // Set pin to center if not set
       const [vbX, vbY, vbW, vbH] = zoomViewBox.split(' ').map(Number);
       const relX = 0.5;
       const relY = 0.5;
@@ -246,7 +249,7 @@ let roundStarter = 0; // 0 = Flo, 1 = Kandidat
   }
 
   function checkWinner() {
-    const sol = questions[currentRound].solution;
+    const sol = sessionQuestions[currentRound].solution;
     const d0 = Math.hypot(pins[0].x - sol.x, pins[0].y - sol.y);
     const d1 = Math.hypot(pins[1].x - sol.x, pins[1].y - sol.y);
     if (d0 === d1) {
@@ -256,40 +259,42 @@ let roundStarter = 0; // 0 = Flo, 1 = Kandidat
     } else {
       wins[1]++;
     }
-    // Spiel beenden, wenn 3 Punkte oder alle Fragen gespielt
-    if (wins[0] === 3 || wins[1] === 3 || currentRound >= questions.length - 1) {
-      bo5Winner = wins[0] > wins[1] ? 0 : 1;
+    // Spiel beenden, wenn 4 Punkte
+    if (wins[0] === 4 || wins[1] === 4) {
+      bo7Winner = wins[0] > wins[1] ? 0 : 1;
     }
   }
 
   function nextRound() {
-    if (bo5Winner !== null) return;
+    if (bo7Winner !== null) return;
     pins = [];
     showSolution = false;
     currentRound++;
+    if (currentRound >= sessionQuestions.length) {
+      sessionQuestions = shuffle(questions);
+      currentRound = 0;
+    }
     zoom = 1;
     zoomX = 2000 / 2;
     zoomY = 857 / 2;
-    // Starter für die Runde wechseln
     roundStarter = (roundStarter + 1) % 2;
     activePlayer = roundStarter;
     updateViewBox();
   }
 
-onMount(() => {
+  onMount(() => {
     updateViewBox();
-    // Setze roundStarter und activePlayer für die erste Runde
     roundStarter = Math.random() < 0.5 ? 0 : 1;
     activePlayer = roundStarter;
-});
+  });
 </script>
 
 {#if showIntro}
   <div class="sortieren-intro">
     <h2>Wo ist das? – Spielregeln</h2>
     <ul>
-      <li>Ihr spielt Best-of-5: Wer zuerst 3 Runden gewinnt, holt die Punkte.</li>
-      <li>Zu jeder Frage setzt ihr abwechselnd eine Stecknadel auf die Weltkarte. Der andere Spieler darf muss sich währendessen die Augen zu halten.</li>
+      <li>Ihr spielt Best-of-7: Wer zuerst 4 Runden gewinnt, holt die Punkte.</li>
+      <li>Zu jeder Frage setzt ihr abwechselnd eine Stecknadel auf die Weltkarte. Der andere Spieler muss sich währenddessen die Augen zuhalten.</li>
       <li>Wer näher an der gesuchten Lösung ist, gewinnt die Runde.</li>
     </ul>
     <div style="color:#fffbe6; font-size:1.08rem; margin-bottom:0.7rem;">
@@ -297,10 +302,10 @@ onMount(() => {
     </div>
     <button class="start-btn" on:click={startGame}>Spiel starten</button>
   </div>
-{:else if bo5Winner === null && questions[currentRound]}
+{:else if bo7Winner === null && sessionQuestions[currentRound]}
   <div class="map-game-container">
     <div class="map-question">
-      <b>Frage {currentRound + 1} von 5:</b> {questions[currentRound].text}
+      <b>Frage {currentRound + 1}:</b> {sessionQuestions[currentRound].text}
     </div>
     <div class="map-score">
       Flo: {wins[0]} | Kandidat: {wins[1]}
@@ -313,12 +318,9 @@ onMount(() => {
           style="position:absolute;left:0;top:0;width:100%;height:100%;z-index:1;pointer-events:none;"
           aria-hidden="true"
         >
-          <!-- BEGIN worldH.svg content -->
           <g>
-            <!-- SVG paths from worldH.svg inserted below -->
             <image href="/worldH.svg" x="0" y="0" width="2000" height="857" />
           </g>
-          <!-- END worldH.svg content -->
         </svg>
         <svg
           class="map-overlay"
@@ -335,7 +337,6 @@ onMount(() => {
           style="position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:all;z-index:2;"
         >
           {#if showSolution}
-            <!-- Beide Pins anzeigen, wenn Lösung gezeigt wird -->
             {#each pins as pin, i}
               <g>
                 <rect x={pin.x - 0.7} y={pin.y - 10} width="1.4" height="10" fill={i === 0 ? '#4be07b' : '#e74c3c'} stroke="#222" stroke-width="0.3" rx="0.7" opacity="0.7" />
@@ -344,7 +345,6 @@ onMount(() => {
               </g>
             {/each}
           {:else}
-            <!-- Nur den eigenen Pin anzeigen, solange nicht beide gesetzt -->
             {#if tempPin}
               <g>
                 <rect x={tempPin.x - 0.7} y={tempPin.y - 10} width="1.4" height="10" fill="#888" stroke="#444" stroke-width="0.3" rx="0.7" />
@@ -354,14 +354,13 @@ onMount(() => {
             {/if}
           {/if}
           {#if showSolution && solutionCircle}
-            <!-- Blauer Kreis für den näheren Pin -->
             <circle cx={solutionCircle.x} cy={solutionCircle.y} r={solutionCircle.r} fill="#3fa9f5" fill-opacity="0.18" stroke="#3fa9f5" stroke-opacity="0.4" stroke-width="2" />
           {/if}
           {#if showSolution}
             <g>
-              <rect x={questions[currentRound].solution.x - 0.7} y={questions[currentRound].solution.y - 10} width="1.4" height="10" fill="#ffe066" stroke="#222" stroke-width="0.3" rx="0.7" />
-              <circle cx={questions[currentRound].solution.x} cy={questions[currentRound].solution.y - 10} r="3.2" fill="#ffe066" stroke="#222" stroke-width="1" />
-              <circle cx={questions[currentRound].solution.x} cy={questions[currentRound].solution.y} r="1.1" fill="#fff" stroke="#222" stroke-width="0.5" />
+              <rect x={sessionQuestions[currentRound].solution.x - 0.7} y={sessionQuestions[currentRound].solution.y - 10} width="1.4" height="10" fill="#ffe066" stroke="#222" stroke-width="0.3" rx="0.7" />
+              <circle cx={sessionQuestions[currentRound].solution.x} cy={sessionQuestions[currentRound].solution.y - 10} r="3.2" fill="#ffe066" stroke="#222" stroke-width="1" />
+              <circle cx={sessionQuestions[currentRound].solution.x} cy={sessionQuestions[currentRound].solution.y} r="1.1" fill="#fff" stroke="#222" stroke-width="0.5" />
             </g>
           {/if}
         </svg>
@@ -370,9 +369,9 @@ onMount(() => {
     <div class="map-player-info">
       {#if showSolution}
         {#if pins.length === 2}
-          {#if Math.hypot(pins[0].x - questions[currentRound].solution.x, pins[0].y - questions[currentRound].solution.y) === Math.hypot(pins[1].x - questions[currentRound].solution.x, pins[1].y - questions[currentRound].solution.y)}
+          {#if Math.hypot(pins[0].x - sessionQuestions[currentRound].solution.x, pins[0].y - sessionQuestions[currentRound].solution.y) === Math.hypot(pins[1].x - sessionQuestions[currentRound].solution.x, pins[1].y - sessionQuestions[currentRound].solution.y)}
             <div style="margin:1rem 0; font-weight:bold; color:#fff;">Unentschieden!</div>
-          {:else if Math.hypot(pins[0].x - questions[currentRound].solution.x, pins[0].y - questions[currentRound].solution.y) < Math.hypot(pins[1].x - questions[currentRound].solution.x, pins[1].y - questions[currentRound].solution.y)}
+          {:else if Math.hypot(pins[0].x - sessionQuestions[currentRound].solution.x, pins[0].y - sessionQuestions[currentRound].solution.y) < Math.hypot(pins[1].x - sessionQuestions[currentRound].solution.x, pins[1].y - sessionQuestions[currentRound].solution.y)}
             <div style="margin:1rem 0; font-weight:bold; color:#fff;">Flo gewinnt diese Runde!</div>
           {:else}
             <div style="margin:1rem 0; font-weight:bold; color:#fff;">Kandidat gewinnt diese Runde!</div>
@@ -393,22 +392,16 @@ onMount(() => {
       {/if}
     </div>
   </div>
-
-
 {:else}
   <div class="map-game-end">
     <h2>Spiel beendet!</h2>
-    {#if bo5Winner !== null}
-      <p>Gewinner: {bo5Winner === 0 ? 'Flo' : 'Kandidat'}</p>
+    {#if bo7Winner !== null}
+      <p>Gewinner: {bo7Winner === 0 ? 'Flo' : 'Kandidat'}</p>
     {/if}
     <p>Endstand: {wins[0]} : {wins[1]}</p>
     <button class="map-confirm-btn map-next-btn" on:click={endMapGame}>Weiter</button>
   </div>
 {/if}
-
-
-
-
 
 <style>
 /* --- MapGame intro uses SortierenSession intro design --- */
